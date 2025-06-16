@@ -8,13 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
+import { CalendarIcon, Copy, Trash, GripVertical } from "lucide-react"
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useDrag, useDrop } from "react-dnd"
 import { ImportFieldsDialog } from "./import-fields-dialog"
 import { ModalList } from "./modal-list"
-import { CalendarIcon, Copy, Trash, GripVertical } from "lucide-react"
 
 interface FormPreviewProps {
   components: any[]
@@ -24,7 +25,7 @@ interface FormPreviewProps {
   onReorderComponents: (dragIndex: number, hoverIndex: number) => void
   onImportFields: (fields: string[]) => void
   selectedComponentId: string | null | undefined
-  viewType: "form" | "list"
+  viewType: "form" | "list" | "checklist"
   previewMode: boolean
 }
 
@@ -37,7 +38,7 @@ interface DraggableComponentProps {
   onReorderComponents: (dragIndex: number, hoverIndex: number) => void
   selectedComponentId: string | null | undefined
   previewMode: boolean
-  viewType: "form" | "list"
+  viewType: "form" | "list" | "checklist"
 }
 
 const DraggableComponent: React.FC<DraggableComponentProps> = ({
@@ -314,6 +315,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   const [resizingColumn, setResizingColumn] = useState<string | null>(null)
   const [startX, setStartX] = useState(0)
   const [startWidth, setStartWidth] = useState(0)
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
+  const [selectAll, setSelectAll] = useState(false)
   const tableRef = useRef<HTMLTableElement>(null)
 
   // 处理列宽调整移动的函数
@@ -345,6 +348,31 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     }
   }, [resizingColumn, handleResizeMove, handleResizeEnd])
 
+  // 处理全选
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked)
+    if (checked) {
+      setSelectedRows(new Set([0, 1, 2])) // 假设有3行示例数据
+    } else {
+      setSelectedRows(new Set())
+    }
+  }
+
+  // 处理单行选择
+  const handleRowSelect = (rowIndex: number, checked: boolean) => {
+    const newSelectedRows = new Set(selectedRows)
+    if (checked) {
+      newSelectedRows.add(rowIndex)
+    } else {
+      newSelectedRows.delete(rowIndex)
+    }
+    setSelectedRows(newSelectedRows)
+
+    // 更新全选状态
+    const totalRows = 3 // 假设有3行示例数据
+    setSelectAll(newSelectedRows.size === totalRows)
+  }
+
   if (components.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-lg">
@@ -375,14 +403,18 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     return columnWidths[componentId] || defaultWidth
   }
 
-  if (viewType === "list") {
+  if (viewType === "list" || viewType === "checklist") {
     return (
       <div className="w-full">
         {/* 导入字段按钮 */}
         {!previewMode && (
           <div className="mb-4 flex justify-between items-center">
             <ImportFieldsDialog onImportFields={onImportFields} />
-            <span className="text-sm text-gray-500">拖拽图标可调整列顺序，拖拽列头边缘可调整列宽</span>
+            <span className="text-sm text-gray-500">
+              {viewType === "checklist"
+                ? "拖拽图标可调整列顺序，拖拽列头边缘可调整列宽，复选框可选择行"
+                : "拖拽图标可调整列顺序，拖拽列头边缘可调整列宽"}
+            </span>
           </div>
         )}
 
@@ -406,11 +438,38 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           </div>
         )}
 
+        {/* 复选列表顶部操作栏 */}
+        {viewType === "checklist" && selectedRows.size > 0 && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-blue-700">已选择 {selectedRows.size} 项</span>
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm">
+                  批量编辑
+                </Button>
+                <Button variant="outline" size="sm">
+                  批量删除
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setSelectedRows(new Set())}>
+                  取消选择
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 列表表格 */}
         <div className="overflow-x-auto border border-gray-200 rounded-lg">
           <table ref={tableRef} className="w-full border-collapse min-w-max">
             <thead>
               <tr className="bg-gray-50">
+                {/* 复选列表的全选复选框 */}
+                {viewType === "checklist" && (
+                  <th className="border-r border-gray-200 p-3 w-12">
+                    <Checkbox checked={selectAll} onCheckedChange={handleSelectAll} aria-label="全选" />
+                  </th>
+                )}
+
                 {fieldsAndOthers.map((component, index) => (
                   <DraggableTableHeader
                     key={component.id}
@@ -447,34 +506,48 @@ const FormPreview: React.FC<FormPreviewProps> = ({
               </tr>
             </thead>
             <tbody>
-              <tr>
-                {fieldsAndOthers.map((component) => (
-                  <td
-                    key={component.id}
-                    className="border-r border-gray-200 p-3 whitespace-nowrap"
-                    style={{
-                      width: `${getColumnWidth(component.id)}px`,
-                      minWidth: `${getColumnWidth(component.id)}px`,
-                    }}
-                  >
-                    <div className="w-full">
+              {/* 渲染示例数据行 */}
+              {[0, 1, 2].map((rowIndex) => (
+                <tr key={rowIndex} className={`hover:bg-gray-50 ${selectedRows.has(rowIndex) ? "bg-blue-50" : ""}`}>
+                  {/* 复选列表的行复选框 */}
+                  {viewType === "checklist" && (
+                    <td className="border-r border-gray-200 p-3">
+                      <Checkbox
+                        checked={selectedRows.has(rowIndex)}
+                        onCheckedChange={(checked) => handleRowSelect(rowIndex, checked as boolean)}
+                        aria-label={`选择第${rowIndex + 1}行`}
+                      />
+                    </td>
+                  )}
+
+                  {fieldsAndOthers.map((component) => (
+                    <td
+                      key={component.id}
+                      className="border-r border-gray-200 p-3 whitespace-nowrap"
+                      style={{
+                        width: `${getColumnWidth(component.id)}px`,
+                        minWidth: `${getColumnWidth(component.id)}px`,
+                      }}
+                    >
+                      <div className="w-full">
+                        <RenderComponent component={component} previewMode={previewMode} />
+                      </div>
+                    </td>
+                  ))}
+                  {actionBars.map((component) => (
+                    <td
+                      key={component.id}
+                      className="border-r border-gray-200 p-3 whitespace-nowrap"
+                      style={{
+                        width: `${getColumnWidth(component.id, 150)}px`,
+                        minWidth: `${getColumnWidth(component.id, 150)}px`,
+                      }}
+                    >
                       <RenderComponent component={component} previewMode={previewMode} />
-                    </div>
-                  </td>
-                ))}
-                {actionBars.map((component) => (
-                  <td
-                    key={component.id}
-                    className="border-r border-gray-200 p-3 whitespace-nowrap"
-                    style={{
-                      width: `${getColumnWidth(component.id, 150)}px`,
-                      minWidth: `${getColumnWidth(component.id, 150)}px`,
-                    }}
-                  >
-                    <RenderComponent component={component} previewMode={previewMode} />
-                  </td>
-                ))}
-              </tr>
+                    </td>
+                  ))}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

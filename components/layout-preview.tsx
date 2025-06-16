@@ -37,7 +37,7 @@ const LayoutPreview: React.FC<LayoutPreviewProps> = ({
 }) => {
   const { layoutType, layoutItems, selectedItemId } = appState
 
-  const handleSetContentType = (itemId: string, contentType: "form" | "list") => {
+  const handleSetContentType = (itemId: string, contentType: "form" | "list" | "checklist") => {
     onUpdateLayoutItem(itemId, { contentType })
   }
 
@@ -193,7 +193,7 @@ const LayoutPreview: React.FC<LayoutPreviewProps> = ({
 interface LayoutItemContentProps {
   item: LayoutItem
   isSelected: boolean
-  onSetContentType: (itemId: string, contentType: "form" | "list") => void
+  onSetContentType: (itemId: string, contentType: "form" | "list" | "checklist") => void
   onSelectComponent: (component: any) => void
   onDeleteComponent: (itemId: string, componentId: string) => void
   onDuplicateComponent: (itemId: string, component: any) => void
@@ -240,6 +240,9 @@ const LayoutItemContent: React.FC<LayoutItemContentProps> = ({
               </Button>
               <Button variant="outline" size="sm" onClick={() => onSetContentType(item.id, "list")}>
                 列表
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => onSetContentType(item.id, "checklist")}>
+                复选列表
               </Button>
             </div>
           </>

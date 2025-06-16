@@ -21,7 +21,7 @@ import { HelpDialog } from "@/components/help-dialog"
 export interface LayoutItem {
   id: string
   name: string
-  contentType: "form" | "list" | null
+  contentType: "form" | "list" | "checklist" | null
   components: any[]
 }
 
