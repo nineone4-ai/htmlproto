@@ -10,11 +10,11 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { CalendarIcon, Copy, Trash, GripVertical } from "lucide-react"
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useDrag, useDrop } from "react-dnd"
 import { ImportFieldsDialog } from "./import-fields-dialog"
 import { ModalList } from "./modal-list"
+import { CalendarIcon, Copy, Trash, GripVertical } from "lucide-react"
 
 interface FormPreviewProps {
   components: any[]
@@ -158,6 +158,146 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({
   return null
 }
 
+interface DraggableTableHeaderProps {
+  component: any
+  index: number
+  onReorderComponents: (dragIndex: number, hoverIndex: number) => void
+  onSelectComponent: (component: any) => void
+  onDeleteComponent: (componentId: string) => void
+  onDuplicateComponent: (component: any) => void
+  selectedComponentId: string | null | undefined
+  previewMode: boolean
+  columnWidth: number
+  onResizeStart: (e: React.MouseEvent, componentId: string, initialWidth: number) => void
+}
+
+const DraggableTableHeader: React.FC<DraggableTableHeaderProps> = ({
+  component,
+  index,
+  onReorderComponents,
+  onSelectComponent,
+  onDeleteComponent,
+  onDuplicateComponent,
+  selectedComponentId,
+  previewMode,
+  columnWidth,
+  onResizeStart,
+}) => {
+  const ref = useRef<HTMLTableCellElement>(null)
+
+  const [{ handlerId }, drop] = useDrop({
+    accept: "TABLE_HEADER",
+    collect(monitor) {
+      return {
+        handlerId: monitor.getHandlerId(),
+      }
+    },
+    hover(item: any, monitor) {
+      if (!ref.current) {
+        return
+      }
+      const dragIndex = item.index
+      const hoverIndex = index
+
+      if (dragIndex === hoverIndex) {
+        return
+      }
+
+      const hoverBoundingRect = ref.current?.getBoundingClientRect()
+      const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2
+      const clientOffset = monitor.getClientOffset()
+      const hoverClientX = clientOffset!.x - hoverBoundingRect.left
+
+      if (dragIndex < hoverIndex && hoverClientX < hoverMiddleX) {
+        return
+      }
+
+      if (dragIndex > hoverIndex && hoverClientX > hoverMiddleX) {
+        return
+      }
+
+      onReorderComponents(dragIndex, hoverIndex)
+      item.index = hoverIndex
+    },
+  })
+
+  const [{ isDragging }, drag, preview] = useDrag({
+    type: "TABLE_HEADER",
+    item: () => {
+      return { id: component.id, index }
+    },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  })
+
+  const opacity = isDragging ? 0.4 : 1
+  preview(drop(ref))
+
+  return (
+    <th
+      ref={ref}
+      className={`border-r border-gray-200 p-3 text-left font-medium whitespace-nowrap relative ${
+        selectedComponentId === component.id ? "bg-blue-50" : ""
+      } ${isDragging ? "bg-blue-100" : ""}`}
+      style={{ width: `${columnWidth}px`, minWidth: `${columnWidth}px`, opacity }}
+      onClick={() => !previewMode && onSelectComponent(component)}
+      data-handler-id={handlerId}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          {!previewMode && (
+            <div
+              ref={drag}
+              className="cursor-move mr-2 text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-200"
+              title="拖拽调整列顺序"
+            >
+              <GripVertical className="h-4 w-4" />
+            </div>
+          )}
+          <span className="flex items-center">
+            {component.props.required && <span className="text-red-500 mr-1">*</span>}
+            {component.props.label}
+          </span>
+        </div>
+        {!previewMode && (
+          <div className="flex space-x-1 ml-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5"
+              onClick={(e) => {
+                e.stopPropagation()
+                onDuplicateComponent(component)
+              }}
+            >
+              <Copy className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5 text-red-500"
+              onClick={(e) => {
+                e.stopPropagation()
+                onDeleteComponent(component.id)
+              }}
+            >
+              <Trash className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
+      </div>
+      {/* 列宽调整手柄 */}
+      <div
+        className="absolute top-0 right-0 h-full w-2 cursor-col-resize group"
+        onMouseDown={(e) => onResizeStart(e, component.id, columnWidth)}
+      >
+        <div className="absolute right-0 top-0 h-full w-1 bg-transparent group-hover:bg-blue-400 group-active:bg-blue-600"></div>
+      </div>
+    </th>
+  )
+}
+
 const FormPreview: React.FC<FormPreviewProps> = ({
   components,
   onSelectComponent,
@@ -242,7 +382,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({
         {!previewMode && (
           <div className="mb-4 flex justify-between items-center">
             <ImportFieldsDialog onImportFields={onImportFields} />
-            <span className="text-sm text-gray-500">拖拽列头边缘可调整列宽</span>
+            <span className="text-sm text-gray-500">拖拽图标可调整列顺序，拖拽列头边缘可调整列宽</span>
           </div>
         )}
 
@@ -271,108 +411,37 @@ const FormPreview: React.FC<FormPreviewProps> = ({
           <table ref={tableRef} className="w-full border-collapse min-w-max">
             <thead>
               <tr className="bg-gray-50">
-                {fieldsAndOthers.map((component) => {
-                  const width = getColumnWidth(component.id)
+                {fieldsAndOthers.map((component, index) => (
+                  <DraggableTableHeader
+                    key={component.id}
+                    component={component}
+                    index={index}
+                    onReorderComponents={onReorderComponents}
+                    onSelectComponent={onSelectComponent}
+                    onDeleteComponent={onDeleteComponent}
+                    onDuplicateComponent={onDuplicateComponent}
+                    selectedComponentId={selectedComponentId}
+                    previewMode={previewMode}
+                    columnWidth={getColumnWidth(component.id)}
+                    onResizeStart={handleResizeStart}
+                  />
+                ))}
+                {actionBars.map((component, index) => {
+                  const actionBarIndex = fieldsAndOthers.length + index
                   return (
-                    <th
+                    <DraggableTableHeader
                       key={component.id}
-                      className={`border-r border-gray-200 p-3 text-left font-medium whitespace-nowrap relative ${
-                        selectedComponentId === component.id ? "bg-blue-50" : ""
-                      }`}
-                      style={{ width: `${width}px`, minWidth: `${width}px` }}
-                      onClick={() => !previewMode && onSelectComponent(component)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="flex items-center">
-                          {component.props.required && <span className="text-red-500 mr-1">*</span>}
-                          {component.props.label}
-                        </span>
-                        {!previewMode && (
-                          <div className="flex space-x-1 ml-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-5 w-5"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                onDuplicateComponent(component)
-                              }}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-5 w-5 text-red-500"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                onDeleteComponent(component.id)
-                              }}
-                            >
-                              <Trash className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                      {/* 列宽调整手柄 */}
-                      <div
-                        className="absolute top-0 right-0 h-full w-2 cursor-col-resize group"
-                        onMouseDown={(e) => handleResizeStart(e, component.id, width)}
-                      >
-                        <div className="absolute right-0 top-0 h-full w-1 bg-transparent group-hover:bg-blue-400 group-active:bg-blue-600"></div>
-                      </div>
-                    </th>
-                  )
-                })}
-                {/* 操作栏 */}
-                {actionBars.map((component) => {
-                  const width = getColumnWidth(component.id, 150)
-                  return (
-                    <th
-                      key={component.id}
-                      className={`border-r border-gray-200 p-3 text-left font-medium whitespace-nowrap relative ${
-                        selectedComponentId === component.id ? "bg-blue-50" : ""
-                      }`}
-                      style={{ width: `${width}px`, minWidth: `${width}px` }}
-                      onClick={() => !previewMode && onSelectComponent(component)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>操作</span>
-                        {!previewMode && (
-                          <div className="flex space-x-1 ml-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-5 w-5"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                onDuplicateComponent(component)
-                              }}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-5 w-5 text-red-500"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                onDeleteComponent(component.id)
-                              }}
-                            >
-                              <Trash className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                      {/* 列宽调整手柄 */}
-                      <div
-                        className="absolute top-0 right-0 h-full w-2 cursor-col-resize group"
-                        onMouseDown={(e) => handleResizeStart(e, component.id, width)}
-                      >
-                        <div className="absolute right-0 top-0 h-full w-1 bg-transparent group-hover:bg-blue-400 group-active:bg-blue-600"></div>
-                      </div>
-                    </th>
+                      component={component}
+                      index={actionBarIndex}
+                      onReorderComponents={onReorderComponents}
+                      onSelectComponent={onSelectComponent}
+                      onDeleteComponent={onDeleteComponent}
+                      onDuplicateComponent={onDuplicateComponent}
+                      selectedComponentId={selectedComponentId}
+                      previewMode={previewMode}
+                      columnWidth={getColumnWidth(component.id, 150)}
+                      onResizeStart={handleResizeStart}
+                    />
                   )
                 })}
               </tr>
