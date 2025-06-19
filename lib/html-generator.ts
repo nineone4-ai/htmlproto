@@ -1,7 +1,7 @@
 import type { AppState } from "@/app/page"
 
 export const generateHtml = (appState: AppState) => {
-  const { layoutType, layoutItems, metadata } = appState
+  const { layoutType, layoutItems, metadata, approvalButtons = [] } = appState
 
   // Generate basic HTML structure with improved styling
   let html = `
@@ -239,13 +239,35 @@ export const generateHtml = (appState: AppState) => {
       background-color: #dc2626;
       border-color: #dc2626;
     }
-    
+
+    .btn-warning {
+      background-color: white;
+      color: #f59e0b;
+      border-color: #f59e0b;
+    }
+
+    .btn-warning:hover {
+      background-color: #fef3c7;
+      border-color: #f59e0b;
+    }
+
     .button-group {
       display: flex;
       justify-content: center;
       gap: 16px;
       padding-top: 24px;
       border-top: 1px solid #e5e7eb;
+    }
+
+    .approval-buttons-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+    }
+
+    .approval-buttons {
+      display: flex;
+      gap: 8px;
     }
     
     .table-container {
@@ -490,11 +512,11 @@ export const generateHtml = (appState: AppState) => {
 
   // Generate layout-specific HTML
   if (layoutType === "tabs") {
-    html += generateTabsHtml(layoutItems)
+    html += generateTabsHtml(layoutItems, approvalButtons)
   } else if (layoutType === "accordion") {
-    html += generateAccordionHtml(layoutItems)
+    html += generateAccordionHtml(layoutItems, approvalButtons)
   } else if (layoutType === "flat") {
-    html += generateFlatHtml(layoutItems)
+    html += generateFlatHtml(layoutItems, approvalButtons)
   }
 
   // Add footer
@@ -597,7 +619,7 @@ export const generateHtml = (appState: AppState) => {
   return html
 }
 
-function generateTabsHtml(layoutItems: any[]) {
+function generateTabsHtml(layoutItems: any[], approvalButtons: any[] = []) {
   let html = `
     <div class="tabs">
       <div class="tab-list">
@@ -614,8 +636,8 @@ function generateTabsHtml(layoutItems: any[]) {
   layoutItems.forEach((item, index) => {
     html += `      <div class="tab-content ${index === 0 ? "active" : ""}" id="${item.id}">
 `
-    if (item.contentType && item.components.length > 0) {
-      html += generateContentHtml(item.components, item.contentType)
+    if (item.contentType && (item.components.length > 0 || approvalButtons.length > 0)) {
+      html += generateContentHtml(item.components, item.contentType, approvalButtons)
     } else {
       html += `        <p style="text-align: center; color: #6b7280; padding: 40px;">暂无内容</p>
 `
@@ -630,7 +652,7 @@ function generateTabsHtml(layoutItems: any[]) {
   return html
 }
 
-function generateAccordionHtml(layoutItems: any[]) {
+function generateAccordionHtml(layoutItems: any[], approvalButtons: any[] = []) {
   let html = `    <div class="accordion">
 `
 
@@ -642,8 +664,8 @@ function generateAccordionHtml(layoutItems: any[]) {
         </div>
         <div class="accordion-content" id="${item.id}">
 `
-    if (item.contentType && item.components.length > 0) {
-      html += generateContentHtml(item.components, item.contentType)
+    if (item.contentType && (item.components.length > 0 || approvalButtons.length > 0)) {
+      html += generateContentHtml(item.components, item.contentType, approvalButtons)
     } else {
       html += `          <p style="text-align: center; color: #6b7280; padding: 40px;">暂无内容</p>
 `
@@ -659,7 +681,7 @@ function generateAccordionHtml(layoutItems: any[]) {
   return html
 }
 
-function generateFlatHtml(layoutItems: any[]) {
+function generateFlatHtml(layoutItems: any[], approvalButtons: any[] = []) {
   let html = `    <div class="flat-layout">
 `
 
@@ -667,8 +689,8 @@ function generateFlatHtml(layoutItems: any[]) {
     html += `      <div class="card">
         <h3 class="card-title">${item.name}</h3>
 `
-    if (item.contentType && item.components.length > 0) {
-      html += generateContentHtml(item.components, item.contentType)
+    if (item.contentType && (item.components.length > 0 || approvalButtons.length > 0)) {
+      html += generateContentHtml(item.components, item.contentType, approvalButtons)
     } else {
       html += `        <p style="text-align: center; color: #6b7280; padding: 40px;">暂无内容</p>
 `
@@ -683,7 +705,7 @@ function generateFlatHtml(layoutItems: any[]) {
   return html
 }
 
-function generateContentHtml(components: any[], contentType: string) {
+function generateContentHtml(components: any[], contentType: string, approvalButtons: any[] = []) {
   let html = ""
 
   if (contentType === "form") {
@@ -691,7 +713,26 @@ function generateContentHtml(components: any[], contentType: string) {
     const otherComponents = components.filter((comp) => comp.type !== "button")
 
     html += `        <form>
-          <div class="form-grid">
+`
+
+    // 添加审批按钮到表单内部顶部
+    if (approvalButtons.length > 0) {
+      html += `          <div class="approval-buttons-container" style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+            <div class="approval-buttons" style="display: flex; gap: 8px;">
+`
+      approvalButtons.forEach((component) => {
+        const buttonStyle = component.props.color
+          ? `style="background-color: ${component.props.color}; border-color: ${component.props.color}; color: white;"`
+          : `style="background-color: #1890ff; border-color: #1890ff; color: white;"`
+        html += `              <button type="button" class="btn btn-primary" ${buttonStyle} ${component.props.disabled ? "disabled" : ""}>${component.props.text}</button>
+`
+      })
+      html += `            </div>
+          </div>
+`
+    }
+
+    html += `          <div class="form-grid">
 `
 
     otherComponents.forEach((component) => {
@@ -748,6 +789,10 @@ function generateContentHtml(components: any[], contentType: string) {
           break
         case "datepicker":
           html += `              <input type="date" class="form-control" ${component.props.required ? "required" : ""} ${component.props.disabled ? "disabled" : ""}>
+`
+          break
+        case "datetimepicker":
+          html += `              <input type="datetime-local" class="form-control" step="1" ${component.props.required ? "required" : ""} ${component.props.disabled ? "disabled" : ""}>
 `
           break
         case "modal":
@@ -905,6 +950,9 @@ function generateContentHtml(components: any[], contentType: string) {
           break
         case "datepicker":
           html += `<input type="date" class="form-control" ${component.props.disabled ? "disabled" : ""}>`
+          break
+        case "datetimepicker":
+          html += `<input type="datetime-local" class="form-control" step="1" ${component.props.disabled ? "disabled" : ""}>`
           break
         case "actionbar":
           html += `<div style="display: flex; gap: 8px;">`

@@ -106,12 +106,49 @@ export function parseHtmlFile(htmlContent: string): AppState | null {
       })
     }
 
+    // 解析审批按钮（从所有表单中提取）
+    const approvalButtons: any[] = []
+    const allForms = doc.querySelectorAll("form")
+    allForms.forEach((form) => {
+      const approvalButtonsContainer = form.querySelector(".approval-buttons-container .approval-buttons")
+      if (approvalButtonsContainer) {
+        const buttons = approvalButtonsContainer.querySelectorAll("button")
+        Array.from(buttons).forEach((button, index) => {
+          const text = button.textContent?.trim() || "按钮"
+          const className = button.className
+          let type = "default"
+          let componentType = "approval-custom"
+
+          if (className.includes("btn-warning")) type = "warning"
+          else if (className.includes("btn-primary")) type = "primary"
+
+          // 根据按钮文本确定类型
+          if (text.includes("查看流程")) componentType = "approval-view-process"
+          else if (text.includes("撤销审批")) componentType = "approval-revoke"
+          else if (text.includes("返回")) componentType = "approval-return"
+          else componentType = "approval-custom"
+
+          const approvalButton = {
+            id: `${componentType}_${Date.now()}_${index}`,
+            type: componentType,
+            props: {
+              text,
+              type,
+              disabled: button.hasAttribute("disabled"),
+            },
+          }
+          approvalButtons.push(approvalButton)
+        })
+      }
+    })
+
     return {
       layoutType,
       layoutItems,
       selectedItemId: layoutItems[0]?.id || null,
       selectedComponent: null,
       metadata,
+      approvalButtons,
     }
   } catch (error) {
     console.error("解析HTML文件失败:", error)
@@ -143,7 +180,9 @@ function parseContent(element: Element): { contentType: "form" | "list" | null; 
       }
     })
 
-    // 解析按钮
+    // 审批按钮现在在独立状态中处理，不在这里解析
+
+    // 解析普通按钮
     const buttons = form.querySelectorAll(".button-group button")
     buttons.forEach((button, index) => {
       const component = parseButton(button as HTMLButtonElement, index)
@@ -237,6 +276,12 @@ function parseFormField(input: Element, label: Element, isRequired: boolean, ind
           id: `datepicker_${Date.now()}_${index}`,
           type: "datepicker",
           props: baseProps,
+        }
+      case "datetime-local":
+        return {
+          id: `datetimepicker_${Date.now()}_${index}`,
+          type: "datetimepicker",
+          props: { ...baseProps, showTime: true },
         }
       case "checkbox":
         return {

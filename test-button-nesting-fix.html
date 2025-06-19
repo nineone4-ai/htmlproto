@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>按钮嵌套问题修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .tabs-container {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .tab-list {
+            display: flex;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #ccc;
+            position: relative;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button.active {
+            background-color: white;
+            border-bottom-color: #007bff;
+        }
+        .delete-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            border: none;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tab-content {
+            padding: 20px;
+            min-height: 100px;
+        }
+        .accordion-container {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .accordion-item {
+            border-bottom: 1px solid #ccc;
+            position: relative;
+        }
+        .accordion-item:last-child {
+            border-bottom: none;
+        }
+        .accordion-header {
+            padding: 12px 16px;
+            background-color: #f5f5f5;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-size: 16px;
+        }
+        .accordion-content {
+            padding: 20px;
+            background-color: white;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>按钮嵌套问题修复测试</h1>
+    
+    <div class="test-section">
+        <div class="test-title">1. 修复前的问题</div>
+        <p>之前的错误：<code>&lt;button&gt;</code> 不能嵌套在另一个 <code>&lt;button&gt;</code> 内部</p>
+        <p class="error">❌ 错误示例：TabsTrigger 内部包含删除按钮</p>
+        <pre><code>&lt;button role="tab"&gt;
+  标签名称
+  &lt;button&gt;删除&lt;/button&gt;  &lt;!-- 这是错误的嵌套 --&gt;
+&lt;/button&gt;</code></pre>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">2. 修复后的正确结构</div>
+        <p class="success">✅ 正确示例：删除按钮移到外部</p>
+        
+        <!-- 标签页布局示例 -->
+        <h4>标签页布局（修复后）：</h4>
+        <div class="tabs-container">
+            <div class="tab-list">
+                <button class="tab-button active">表单1</button>
+                <button class="tab-button">表单2</button>
+                <button class="tab-button">表单3</button>
+                <!-- 删除按钮在外部 -->
+                <button class="delete-button" title="删除当前标签">×</button>
+            </div>
+            <div class="tab-content">
+                <p>这里是标签页内容区域</p>
+            </div>
+        </div>
+
+        <!-- 手风琴布局示例 -->
+        <h4 style="margin-top: 20px;">手风琴布局（修复后）：</h4>
+        <div class="accordion-container">
+            <div class="accordion-item">
+                <div style="position: relative;">
+                    <button class="accordion-header">表单项目1</button>
+                    <!-- 删除按钮在外部 -->
+                    <button class="delete-button" style="top: 8px; right: 8px;" title="删除此项">×</button>
+                </div>
+                <div class="accordion-content">
+                    <p>这里是手风琴内容区域</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">3. 修复要点</div>
+        <ul>
+            <li><strong>标签页布局</strong>：删除按钮移到 TabsList 外部，使用绝对定位</li>
+            <li><strong>手风琴布局</strong>：删除按钮移到 AccordionTrigger 外部，使用绝对定位</li>
+            <li><strong>事件处理</strong>：使用 stopPropagation() 防止事件冒泡</li>
+            <li><strong>样式调整</strong>：使用 z-index 确保删除按钮在最上层</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">4. 审批按钮功能</div>
+        <p>审批按钮现在正确地显示在表单右上角，不会产生嵌套问题：</p>
+        
+        <!-- 模拟表单区域 -->
+        <div style="position: relative; border: 2px dashed #007bff; padding: 20px; min-height: 150px;">
+            <div style="position: absolute; top: 10px; left: 10px; font-size: 12px; color: #666;">
+                表单区域
+            </div>
+            
+            <!-- 审批按钮在表单右上角 -->
+            <div style="position: absolute; top: 10px; right: 10px; display: flex; gap: 8px;">
+                <button style="padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; background: white;">查看流程</button>
+                <button style="padding: 4px 8px; border: 1px solid #f59e0b; color: #f59e0b; border-radius: 4px; background: white;">撤销审批</button>
+                <button style="padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; background: white;">返回</button>
+                <button style="padding: 4px 8px; border: 1px solid #007bff; background: #007bff; color: white; border-radius: 4px;">自定义按钮</button>
+            </div>
+            
+            <!-- 表单内容 -->
+            <div style="padding-top: 40px;">
+                <p>表单字段内容区域...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 测试按钮点击事件
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                if (this.classList.contains('delete-button')) {
+                    e.stopPropagation();
+                    console.log('删除按钮被点击，事件已阻止冒泡');
+                } else {
+                    console.log('普通按钮被点击:', this.textContent);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

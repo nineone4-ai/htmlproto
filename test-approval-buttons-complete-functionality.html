@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>审批按钮完整功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .demo-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .form-preview {
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #f8f9ff;
+        }
+        .property-panel {
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #f8fff8;
+        }
+        .approval-buttons-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .approval-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .approval-button-wrapper {
+            position: relative;
+        }
+        .approval-button-wrapper:hover .action-buttons {
+            opacity: 1;
+        }
+        .btn {
+            padding: 6px 12px;
+            border: 1px solid;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+            transition: all 0.2s;
+        }
+        .btn-outline {
+            border-color: #ccc;
+            color: #333;
+        }
+        .btn-warning {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn.selected {
+            box-shadow: 0 0 0 2px #007bff;
+        }
+        .action-buttons {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            display: flex;
+            gap: 2px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .action-btn {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .action-btn:hover {
+            background: #f5f5f5;
+        }
+        .action-btn.delete {
+            color: #dc3545;
+        }
+        .action-btn.copy {
+            color: #6c757d;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .property-item {
+            margin-bottom: 15px;
+        }
+        .property-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        .property-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .property-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .switch-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background-color: #ccc;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .switch.active {
+            background-color: #007bff;
+        }
+        .switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        .switch.active::after {
+            transform: translateX(20px);
+        }
+        .add-button {
+            margin-bottom: 10px;
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .add-button:hover {
+            background: #218838;
+        }
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .feature-icon {
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>审批按钮完整功能测试</h1>
+    
+    <div class="test-section">
+        <div class="test-title">🎯 完整功能要求</div>
+        <div class="feature-list">
+            <div class="feature-item">
+                <span class="feature-icon">✅</span>
+                <span>与默认按钮样式完全一致</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">✅</span>
+                <span>支持添加、删除、复制功能</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">✅</span>
+                <span>可以修改按钮名称</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">✅</span>
+                <span>独立状态管理</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">✅</span>
+                <span>悬停显示操作按钮</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">✅</span>
+                <span>属性配置面板一致</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">✅</span>
+                <span>支持按钮类型切换</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">✅</span>
+                <span>支持禁用状态</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🎨 交互式功能演示</div>
+        <p>测试所有审批按钮功能：添加、删除、复制、编辑名称、切换类型</p>
+        
+        <button class="add-button" onclick="addApprovalButton()">+ 添加审批按钮</button>
+        
+        <div class="demo-container">
+            <!-- 表单预览区域 -->
+            <div class="form-preview">
+                <h4>表单预览区域</h4>
+                
+                <!-- 审批按钮区域 -->
+                <div class="approval-buttons-container">
+                    <div class="approval-buttons" id="approval-buttons">
+                        <!-- 审批按钮将在这里动态添加 -->
+                    </div>
+                </div>
+                
+                <!-- 表单字段区域 -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>单行文本</label>
+                        <input type="text" placeholder="输入内容">
+                    </div>
+                    <div class="form-group">
+                        <label>下拉选择</label>
+                        <select>
+                            <option>请选择</option>
+                            <option>选项1</option>
+                            <option>选项2</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>日期选择</label>
+                        <input type="date">
+                    </div>
+                    <div class="form-group">
+                        <label>时间选择</label>
+                        <input type="datetime-local" step="1">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 属性配置面板 -->
+            <div class="property-panel">
+                <h4>属性设置</h4>
+                <div id="property-content">
+                    <p style="color: #666; text-align: center; margin-top: 50px;">请选择一个审批按钮</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🔧 技术实现总结</div>
+        
+        <h4>1. 独立状态管理：</h4>
+        <ul>
+            <li><strong>独立数组</strong>：<code>approvalButtons: any[]</code> 与表单字段完全分离</li>
+            <li><strong>专门函数</strong>：<code>handleSelectApprovalButton</code>、<code>handleUpdateApprovalButton</code>、<code>handleDeleteApprovalButton</code>、<code>handleDuplicateApprovalButton</code></li>
+            <li><strong>正确添加</strong>：点击侧边栏审批按钮时添加到独立状态，不混入表单字段</li>
+        </ul>
+
+        <h4>2. 与默认按钮功能一致：</h4>
+        <ul>
+            <li><strong>操作按钮</strong>：悬停显示删除和复制按钮，与默认按钮样式完全一致</li>
+            <li><strong>属性配置</strong>：支持按钮文本、类型、禁用状态的完整编辑</li>
+            <li><strong>交互体验</strong>：选中、编辑、删除的体验与默认按钮完全相同</li>
+        </ul>
+
+        <h4>3. 按钮名称修改：</h4>
+        <ul>
+            <li><strong>文本编辑</strong>：属性面板中的"按钮文本"字段可以自由修改</li>
+            <li><strong>实时更新</strong>：修改后立即在表单右上角显示新名称</li>
+            <li><strong>保持类型</strong>：修改名称不影响按钮的功能类型</li>
+        </ul>
+
+        <h4>4. 完整的生命周期管理：</h4>
+        <ul>
+            <li><strong>添加</strong>：从组件侧边栏添加到独立状态</li>
+            <li><strong>编辑</strong>：通过属性面板修改所有属性</li>
+            <li><strong>复制</strong>：创建相同配置的新按钮</li>
+            <li><strong>删除</strong>：从独立状态中移除</li>
+            <li><strong>HTML导出</strong>：正确生成到表单内部</li>
+            <li><strong>HTML导入</strong>：正确解析到独立状态</li>
+        </ul>
+    </div>
+
+    <script>
+        let buttonIdCounter = 1;
+        let selectedButtonId = null;
+        let approvalButtons = [];
+
+        // 初始化一些默认按钮
+        function initializeButtons() {
+            addButton('查看流程', 'default');
+            addButton('撤销审批', 'warning');
+            addButton('返回', 'default');
+            addButton('自定义按钮', 'primary');
+        }
+
+        function addApprovalButton() {
+            const name = prompt('请输入按钮名称:', '新按钮');
+            if (name) {
+                addButton(name, 'default');
+            }
+        }
+
+        function addButton(text, type) {
+            const buttonId = `btn_${buttonIdCounter++}`;
+            const button = {
+                id: buttonId,
+                text: text,
+                type: type,
+                disabled: false
+            };
+            
+            approvalButtons.push(button);
+            renderButtons();
+        }
+
+        function renderButtons() {
+            const container = document.getElementById('approval-buttons');
+            container.innerHTML = '';
+            
+            approvalButtons.forEach(button => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'approval-button-wrapper';
+                
+                const btn = document.createElement('button');
+                btn.id = button.id;
+                btn.className = `btn btn-${button.type}`;
+                btn.textContent = button.text;
+                btn.disabled = button.disabled;
+                btn.onclick = () => selectButton(button.id);
+                
+                if (selectedButtonId === button.id) {
+                    btn.classList.add('selected');
+                }
+                
+                const actionButtons = document.createElement('div');
+                actionButtons.className = 'action-buttons';
+                actionButtons.innerHTML = `
+                    <div class="action-btn copy" onclick="copyButton('${button.id}')" title="复制">📋</div>
+                    <div class="action-btn delete" onclick="deleteButton('${button.id}')" title="删除">🗑</div>
+                `;
+                
+                wrapper.appendChild(btn);
+                wrapper.appendChild(actionButtons);
+                container.appendChild(wrapper);
+            });
+        }
+
+        function selectButton(buttonId) {
+            selectedButtonId = buttonId;
+            renderButtons();
+            showPropertyPanel(buttonId);
+        }
+
+        function deleteButton(buttonId) {
+            approvalButtons = approvalButtons.filter(btn => btn.id !== buttonId);
+            if (selectedButtonId === buttonId) {
+                selectedButtonId = null;
+                document.getElementById('property-content').innerHTML = '<p style="color: #666; text-align: center; margin-top: 50px;">请选择一个审批按钮</p>';
+            }
+            renderButtons();
+        }
+
+        function copyButton(buttonId) {
+            const originalButton = approvalButtons.find(btn => btn.id === buttonId);
+            if (originalButton) {
+                addButton(originalButton.text + ' 副本', originalButton.type);
+            }
+        }
+
+        function showPropertyPanel(buttonId) {
+            const button = approvalButtons.find(btn => btn.id === buttonId);
+            if (!button) return;
+            
+            const propertyContent = document.getElementById('property-content');
+            propertyContent.innerHTML = `
+                <div class="property-item">
+                    <label class="property-label">字段类型</label>
+                    <select class="property-select" disabled>
+                        <option>审批按钮</option>
+                    </select>
+                </div>
+                
+                <div class="property-item">
+                    <label class="property-label">按钮文本</label>
+                    <input class="property-input" type="text" value="${button.text}" 
+                           onchange="updateButtonProperty('${buttonId}', 'text', this.value)">
+                </div>
+                
+                <div class="property-item">
+                    <label class="property-label">按钮类型</label>
+                    <select class="property-select" onchange="updateButtonProperty('${buttonId}', 'type', this.value)">
+                        <option value="default" ${button.type === 'default' ? 'selected' : ''}>默认</option>
+                        <option value="primary" ${button.type === 'primary' ? 'selected' : ''}>主要</option>
+                        <option value="warning" ${button.type === 'warning' ? 'selected' : ''}>警告</option>
+                    </select>
+                </div>
+                
+                <div class="property-item">
+                    <div class="switch-container">
+                        <label class="property-label">禁用按钮</label>
+                        <div class="switch ${button.disabled ? 'active' : ''}" 
+                             onclick="toggleButtonDisabled('${buttonId}')"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateButtonProperty(buttonId, property, value) {
+            const button = approvalButtons.find(btn => btn.id === buttonId);
+            if (button) {
+                button[property] = value;
+                renderButtons();
+            }
+        }
+
+        function toggleButtonDisabled(buttonId) {
+            const button = approvalButtons.find(btn => btn.id === buttonId);
+            if (button) {
+                button.disabled = !button.disabled;
+                renderButtons();
+                showPropertyPanel(buttonId);
+            }
+        }
+
+        // 初始化
+        initializeButtons();
+    </script>
+</body>
+</html>

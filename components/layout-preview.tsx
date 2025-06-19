@@ -21,6 +21,10 @@ interface LayoutPreviewProps {
   onReorderComponents: (itemId: string, dragIndex: number, hoverIndex: number) => void
   onImportFields: (itemId: string, fields: string[]) => void
   previewMode: boolean
+  approvalButtons?: any[]
+  onDeleteApprovalButton?: (buttonId: string) => void
+  onDuplicateApprovalButton?: (button: any) => void
+  onSelectApprovalButton?: (button: any) => void
 }
 
 const LayoutPreview: React.FC<LayoutPreviewProps> = ({
@@ -34,6 +38,10 @@ const LayoutPreview: React.FC<LayoutPreviewProps> = ({
   onReorderComponents,
   onImportFields,
   previewMode,
+  approvalButtons = [],
+  onDeleteApprovalButton,
+  onDuplicateApprovalButton,
+  onSelectApprovalButton,
 }) => {
   const { layoutType, layoutItems, selectedItemId } = appState
 
@@ -54,26 +62,38 @@ const LayoutPreview: React.FC<LayoutPreviewProps> = ({
   if (layoutType === "tabs") {
     return (
       <Tabs value={selectedItemId || layoutItems[0]?.id} onValueChange={onSelectLayoutItem}>
-        <TabsList className="flex w-full">
-          {layoutItems.map((item) => (
-            <TabsTrigger key={item.id} value={item.id} className="relative group flex-1">
-              {item.name}
-              {!previewMode && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4 ml-2 opacity-0 group-hover:opacity-100 text-red-500"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onDeleteLayoutItem(item.id)
-                  }}
+        <div className="relative">
+          <TabsList className="flex w-full">
+            {layoutItems.map((item) => (
+              <TabsTrigger key={item.id} value={item.id} className="relative group flex-1">
+                {item.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {!previewMode && (
+            <div className="absolute top-0 right-0 flex">
+              {layoutItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex-1 flex justify-end pr-2 pt-2"
+                  style={{ display: selectedItemId === item.id ? 'block' : 'none' }}
                 >
-                  <Trash className="h-3 w-3" />
-                </Button>
-              )}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 text-red-500 hover:text-red-700"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDeleteLayoutItem(item.id)
+                    }}
+                  >
+                    <Trash className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {layoutItems.map((item) => (
           <TabsContent key={item.id} value={item.id} className="mt-4">
@@ -87,6 +107,10 @@ const LayoutPreview: React.FC<LayoutPreviewProps> = ({
               onReorderComponents={onReorderComponents}
               onImportFields={onImportFields}
               previewMode={previewMode}
+              approvalButtons={approvalButtons}
+              onDeleteApprovalButton={onDeleteApprovalButton}
+              onDuplicateApprovalButton={onDuplicateApprovalButton}
+              onSelectApprovalButton={onSelectApprovalButton}
             />
           </TabsContent>
         ))}
@@ -103,25 +127,29 @@ const LayoutPreview: React.FC<LayoutPreviewProps> = ({
         onValueChange={onSelectLayoutItem}
       >
         {layoutItems.map((item) => (
-          <AccordionItem key={item.id} value={item.id}>
-            <AccordionTrigger className="hover:no-underline">
-              <div className="flex items-center justify-between w-full">
+          <AccordionItem key={item.id} value={item.id} className="relative">
+            <div className="relative">
+              <AccordionTrigger className="hover:no-underline">
                 <span>{item.name}</span>
-                {!previewMode && (
+              </AccordionTrigger>
+              {!previewMode && (
+                <div
+                  className="absolute top-2 right-2 z-10"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDeleteLayoutItem(item.id)
+                  }}
+                >
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6 text-red-500"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onDeleteLayoutItem(item.id)
-                    }}
                   >
                     <Trash className="h-4 w-4" />
                   </Button>
-                )}
-              </div>
-            </AccordionTrigger>
+                </div>
+              )}
+            </div>
             <AccordionContent>
               <LayoutItemContent
                 item={item}
@@ -133,6 +161,10 @@ const LayoutPreview: React.FC<LayoutPreviewProps> = ({
                 onReorderComponents={onReorderComponents}
                 onImportFields={onImportFields}
                 previewMode={previewMode}
+                approvalButtons={approvalButtons}
+                onDeleteApprovalButton={onDeleteApprovalButton}
+                onDuplicateApprovalButton={onDuplicateApprovalButton}
+                onSelectApprovalButton={onSelectApprovalButton}
               />
             </AccordionContent>
           </AccordionItem>
@@ -179,6 +211,10 @@ const LayoutPreview: React.FC<LayoutPreviewProps> = ({
                 onReorderComponents={onReorderComponents}
                 onImportFields={onImportFields}
                 previewMode={previewMode}
+                approvalButtons={approvalButtons}
+                onDeleteApprovalButton={onDeleteApprovalButton}
+                onDuplicateApprovalButton={onDuplicateApprovalButton}
+                onSelectApprovalButton={onSelectApprovalButton}
               />
             </CardContent>
           </Card>
@@ -200,6 +236,10 @@ interface LayoutItemContentProps {
   onReorderComponents: (itemId: string, dragIndex: number, hoverIndex: number) => void
   onImportFields: (itemId: string, fields: string[]) => void
   previewMode: boolean
+  approvalButtons?: any[]
+  onDeleteApprovalButton?: (buttonId: string) => void
+  onDuplicateApprovalButton?: (button: any) => void
+  onSelectApprovalButton?: (button: any) => void
 }
 
 const LayoutItemContent: React.FC<LayoutItemContentProps> = ({
@@ -212,10 +252,14 @@ const LayoutItemContent: React.FC<LayoutItemContentProps> = ({
   onReorderComponents,
   onImportFields,
   previewMode,
+  approvalButtons = [],
+  onDeleteApprovalButton,
+  onDuplicateApprovalButton,
+  onSelectApprovalButton,
 }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "COMPONENT",
-    drop: (droppedItem: any) => {
+    drop: () => {
       return { itemId: item.id }
     },
     collect: (monitor) => ({
@@ -226,7 +270,7 @@ const LayoutItemContent: React.FC<LayoutItemContentProps> = ({
   if (!item.contentType) {
     return (
       <div
-        ref={drop}
+        ref={drop as any}
         className={`flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg ${
           isOver ? "border-blue-500 bg-blue-50" : "border-gray-300"
         }`}
@@ -254,7 +298,7 @@ const LayoutItemContent: React.FC<LayoutItemContentProps> = ({
   }
 
   return (
-    <div ref={drop} className="min-h-[200px]">
+    <div ref={drop as any} className="min-h-[200px]">
       <FormPreview
         components={item.components}
         onSelectComponent={onSelectComponent}
@@ -265,6 +309,10 @@ const LayoutItemContent: React.FC<LayoutItemContentProps> = ({
         selectedComponentId={isSelected ? undefined : null}
         viewType={item.contentType}
         previewMode={previewMode}
+        approvalButtons={approvalButtons}
+        onDeleteApprovalButton={onDeleteApprovalButton}
+        onDuplicateApprovalButton={onDuplicateApprovalButton}
+        onSelectApprovalButton={onSelectApprovalButton}
       />
     </div>
   )

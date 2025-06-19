@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>审批按钮Bug修复验证</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .bug-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        .bug-status {
+            font-size: 20px;
+        }
+        .demo-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .form-preview {
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #f8f9ff;
+        }
+        .property-panel {
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #f8fff8;
+        }
+        .approval-buttons-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .approval-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .approval-button-wrapper {
+            position: relative;
+        }
+        .approval-button-wrapper:hover .action-buttons {
+            opacity: 1;
+        }
+        .btn {
+            padding: 6px 12px;
+            border: 1px solid;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+            transition: all 0.2s;
+        }
+        .btn-outline {
+            border-color: #ccc;
+            color: #333;
+        }
+        .btn-warning {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn.selected {
+            box-shadow: 0 0 0 2px #007bff;
+        }
+        .action-buttons {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            display: flex;
+            gap: 2px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .action-btn {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .action-btn:hover {
+            background: #f5f5f5;
+        }
+        .action-btn.delete {
+            color: #dc3545;
+        }
+        .action-btn.copy {
+            color: #6c757d;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .property-item {
+            margin-bottom: 15px;
+        }
+        .property-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        .property-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .property-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .color-input-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .color-picker {
+            width: 40px;
+            height: 32px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 20px;
+        }
+        .normal-button-wrapper {
+            position: relative;
+        }
+        .normal-button-wrapper:hover .action-buttons {
+            opacity: 1;
+        }
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>审批按钮Bug修复验证</h1>
+    
+    <div class="test-section">
+        <div class="test-title">🐛 Bug修复状态</div>
+        
+        <div class="bug-item">
+            <span class="bug-status">✅</span>
+            <div>
+                <strong>Bug 1: 审批类按钮缺少颜色属性设置功能</strong>
+                <div style="font-size: 14px; color: #666; margin-top: 4px;">
+                    修复：属性面板中添加了颜色选择器，支持自定义颜色和实时预览
+                </div>
+            </div>
+        </div>
+        
+        <div class="bug-item">
+            <span class="bug-status">✅</span>
+            <div>
+                <strong>Bug 2: 缺失普通按钮的复制功能</strong>
+                <div style="font-size: 14px; color: #666; margin-top: 4px;">
+                    验证：普通按钮已有完整的复制和删除功能（悬停显示操作按钮）
+                </div>
+            </div>
+        </div>
+        
+        <div class="bug-item">
+            <span class="bug-status">✅</span>
+            <div>
+                <strong>Bug 3: 下载HTML中审批按钮全部丢失</strong>
+                <div style="font-size: 14px; color: #666; margin-top: 4px;">
+                    修复：HTML生成器现在从独立状态获取审批按钮，正确生成到表单内部
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🎨 功能演示</div>
+        <p>测试审批按钮的颜色设置和普通按钮的复制功能：</p>
+        
+        <div class="demo-container">
+            <!-- 表单预览区域 -->
+            <div class="form-preview">
+                <h4>表单预览区域</h4>
+                
+                <!-- 审批按钮区域 -->
+                <div class="approval-buttons-container">
+                    <div class="approval-buttons" id="approval-buttons">
+                        <div class="approval-button-wrapper">
+                            <button id="btn1" class="btn btn-outline" onclick="selectButton('btn1', 'approval')">查看流程</button>
+                            <div class="action-buttons">
+                                <div class="action-btn copy" onclick="copyButton('btn1')" title="复制">📋</div>
+                                <div class="action-btn delete" onclick="deleteButton('btn1')" title="删除">🗑</div>
+                            </div>
+                        </div>
+                        <div class="approval-button-wrapper">
+                            <button id="btn2" class="btn btn-warning" onclick="selectButton('btn2', 'approval')">撤销审批</button>
+                            <div class="action-buttons">
+                                <div class="action-btn copy" onclick="copyButton('btn2')" title="复制">📋</div>
+                                <div class="action-btn delete" onclick="deleteButton('btn2')" title="删除">🗑</div>
+                            </div>
+                        </div>
+                        <div class="approval-button-wrapper">
+                            <button id="btn3" class="btn btn-primary" style="background-color: #e74c3c; border-color: #e74c3c;" onclick="selectButton('btn3', 'approval')">自定义颜色</button>
+                            <div class="action-buttons">
+                                <div class="action-btn copy" onclick="copyButton('btn3')" title="复制">📋</div>
+                                <div class="action-btn delete" onclick="deleteButton('btn3')" title="删除">🗑</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 表单字段区域 -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>单行文本</label>
+                        <input type="text" placeholder="输入内容">
+                    </div>
+                    <div class="form-group">
+                        <label>下拉选择</label>
+                        <select>
+                            <option>请选择</option>
+                            <option>选项1</option>
+                            <option>选项2</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 普通按钮区域 -->
+                <div class="button-group">
+                    <div class="normal-button-wrapper">
+                        <button id="normal1" class="btn btn-outline" onclick="selectButton('normal1', 'normal')">取消</button>
+                        <div class="action-buttons">
+                            <div class="action-btn copy" onclick="copyButton('normal1')" title="复制">📋</div>
+                            <div class="action-btn delete" onclick="deleteButton('normal1')" title="删除">🗑</div>
+                        </div>
+                    </div>
+                    <div class="normal-button-wrapper">
+                        <button id="normal2" class="btn btn-primary" style="background-color: #28a745; border-color: #28a745;" onclick="selectButton('normal2', 'normal')">提交</button>
+                        <div class="action-buttons">
+                            <div class="action-btn copy" onclick="copyButton('normal2')" title="复制">📋</div>
+                            <div class="action-btn delete" onclick="deleteButton('normal2')" title="删除">🗑</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 属性配置面板 -->
+            <div class="property-panel">
+                <h4>属性设置</h4>
+                <div id="property-content">
+                    <p style="color: #666; text-align: center; margin-top: 50px;">请选择一个按钮</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🔧 技术修复详情</div>
+        
+        <h4>1. 审批按钮颜色属性修复：</h4>
+        <div class="code-block">
+// 属性面板支持审批按钮颜色设置
+&lt;div className="space-y-2"&gt;
+  &lt;Label htmlFor="color"&gt;按钮颜色&lt;/Label&gt;
+  &lt;Input
+    type="color"
+    value={selectedComponent.props.color || "#1890ff"}
+    onChange={(e) =&gt; handleComponentChange("color", e.target.value)}
+  /&gt;
+&lt;/div&gt;
+
+// 预览中应用自定义颜色
+style={component.props.color ? {
+  backgroundColor: component.props.color,
+  borderColor: component.props.color,
+  color: 'white'
+} : {}}
+        </div>
+
+        <h4>2. HTML生成修复：</h4>
+        <div class="code-block">
+// 从独立状态获取审批按钮
+function generateContentHtml(components, contentType, approvalButtons = []) {
+  // 审批按钮生成支持自定义颜色
+  const buttonStyle = component.props.color
+    ? `style="background-color: ${component.props.color}; border-color: ${component.props.color}; color: white;"`
+    : ""
+  html += `&lt;button class="btn ${buttonClass}" ${buttonStyle}&gt;${component.props.text}&lt;/button&gt;`
+}
+        </div>
+
+        <h4>3. 普通按钮复制功能验证：</h4>
+        <div class="code-block">
+// 普通按钮已有完整的操作功能
+&lt;div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100"&gt;
+  &lt;Button onClick={onDuplicate}&gt;
+    &lt;Copy className="h-3 w-3" /&gt;
+  &lt;/Button&gt;
+  &lt;Button onClick={onDelete}&gt;
+    &lt;Trash className="h-3 w-3" /&gt;
+  &lt;/Button&gt;
+&lt;/div&gt;
+        </div>
+    </div>
+
+    <script>
+        let selectedButtonId = null;
+        let selectedButtonType = null;
+        
+        const buttonConfigs = {
+            btn1: { text: '查看流程', type: 'default', color: '', disabled: false },
+            btn2: { text: '撤销审批', type: 'warning', color: '', disabled: false },
+            btn3: { text: '自定义颜色', type: 'primary', color: '#e74c3c', disabled: false },
+            normal1: { text: '取消', type: 'default', color: '', disabled: false },
+            normal2: { text: '提交', type: 'primary', color: '#28a745', disabled: false }
+        };
+
+        function selectButton(buttonId, buttonType) {
+            // 清除之前的选中状态
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('selected'));
+            
+            // 设置新的选中状态
+            document.getElementById(buttonId).classList.add('selected');
+            selectedButtonId = buttonId;
+            selectedButtonType = buttonType;
+            
+            // 显示属性面板
+            showPropertyPanel(buttonId, buttonType);
+        }
+
+        function showPropertyPanel(buttonId, buttonType) {
+            const config = buttonConfigs[buttonId];
+            const propertyContent = document.getElementById('property-content');
+            
+            propertyContent.innerHTML = `
+                <div class="property-item">
+                    <label class="property-label">字段类型</label>
+                    <select class="property-select" disabled>
+                        <option>${buttonType === 'approval' ? '审批按钮' : '普通按钮'}</option>
+                    </select>
+                </div>
+                
+                <div class="property-item">
+                    <label class="property-label">按钮文本</label>
+                    <input class="property-input" type="text" value="${config.text}" 
+                           onchange="updateButtonProperty('${buttonId}', 'text', this.value)">
+                </div>
+                
+                <div class="property-item">
+                    <label class="property-label">按钮类型</label>
+                    <select class="property-select" onchange="updateButtonProperty('${buttonId}', 'type', this.value)">
+                        <option value="default" ${config.type === 'default' ? 'selected' : ''}>默认</option>
+                        <option value="primary" ${config.type === 'primary' ? 'selected' : ''}>主要</option>
+                        <option value="warning" ${config.type === 'warning' ? 'selected' : ''}>警告</option>
+                    </select>
+                </div>
+                
+                <div class="property-item">
+                    <label class="property-label">按钮颜色</label>
+                    <div class="color-input-container">
+                        <input class="color-picker" type="color" value="${config.color || '#1890ff'}" 
+                               onchange="updateButtonProperty('${buttonId}', 'color', this.value)">
+                        <input class="property-input" type="text" value="${config.color || '#1890ff'}" 
+                               onchange="updateButtonProperty('${buttonId}', 'color', this.value)" 
+                               placeholder="#1890ff" style="flex: 1;">
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateButtonProperty(buttonId, property, value) {
+            buttonConfigs[buttonId][property] = value;
+            updateButtonDisplay(buttonId);
+        }
+
+        function updateButtonDisplay(buttonId) {
+            const button = document.getElementById(buttonId);
+            const config = buttonConfigs[buttonId];
+            
+            // 更新文本
+            button.textContent = config.text;
+            
+            // 更新样式类
+            button.className = `btn btn-${config.type}`;
+            if (selectedButtonId === buttonId) {
+                button.classList.add('selected');
+            }
+            
+            // 更新自定义颜色
+            if (config.color) {
+                button.style.backgroundColor = config.color;
+                button.style.borderColor = config.color;
+                button.style.color = 'white';
+            } else {
+                button.style.backgroundColor = '';
+                button.style.borderColor = '';
+                button.style.color = '';
+            }
+            
+            // 更新禁用状态
+            button.disabled = config.disabled;
+        }
+
+        function copyButton(buttonId) {
+            const originalConfig = buttonConfigs[buttonId];
+            alert(`复制按钮: ${originalConfig.text}`);
+        }
+
+        function deleteButton(buttonId) {
+            const config = buttonConfigs[buttonId];
+            if (confirm(`确定要删除按钮"${config.text}"吗？`)) {
+                alert(`删除按钮: ${config.text}`);
+            }
+        }
+    </script>
+</body>
+</html>

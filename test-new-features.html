@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试新功能</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+        .btn-primary {
+            background-color: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+        .btn-warning {
+            background-color: white;
+            color: #f59e0b;
+            border-color: #f59e0b;
+        }
+        .btn-outline {
+            background-color: white;
+            color: #374151;
+            border-color: #d1d5db;
+        }
+        .approval-buttons {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            gap: 8px;
+        }
+        .form-container {
+            position: relative;
+            padding-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>新功能测试页面</h1>
+    
+    <div class="test-section">
+        <div class="test-title">1. 时间选择器测试</div>
+        <div class="form-group">
+            <label for="datetime">日期时间选择器（带时分秒）:</label>
+            <input type="datetime-local" id="datetime" step="1">
+        </div>
+        <div class="form-group">
+            <label for="date">普通日期选择器（对比）:</label>
+            <input type="date" id="date">
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">2. 审批按钮测试（拆分为独立按钮）</div>
+
+        <!-- 模拟表单区域 -->
+        <div style="position: relative; border: 2px dashed #ccc; padding: 20px; min-height: 200px;">
+            <div style="position: absolute; top: 10px; left: 10px; font-size: 12px; color: #666;">
+                表单区域边界（虚线框）
+            </div>
+
+            <!-- 审批按钮显示在表单右上角 -->
+            <div style="position: absolute; top: 10px; right: 10px; display: flex; gap: 8px;">
+                <button class="btn btn-outline">查看流程</button>
+                <button class="btn btn-warning">撤销审批</button>
+                <button class="btn btn-outline">返回</button>
+                <button class="btn btn-primary">自定义按钮</button>
+            </div>
+
+            <!-- 表单内容区域 -->
+            <div style="padding-top: 50px;">
+                <div class="form-group">
+                    <label for="test-field">测试字段:</label>
+                    <input type="text" id="test-field" placeholder="这是一个测试字段">
+                </div>
+                <div class="form-group">
+                    <label for="test-select">测试下拉:</label>
+                    <select id="test-select">
+                        <option value="">请选择</option>
+                        <option value="option1">选项1</option>
+                        <option value="option2">选项2</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">3. 功能说明</div>
+        <ul>
+            <li><strong>时间选择器</strong>: 支持选择日期和时间（时分秒），使用HTML5的datetime-local输入类型</li>
+            <li><strong>审批按钮拆分</strong>: 将审批按钮组拆分为4个独立的按钮组件</li>
+            <li><strong>独立按钮</strong>: 查看流程、撤销审批、返回、自定义按钮各自独立</li>
+            <li><strong>布局特点</strong>: 审批按钮固定在表单区域的右上角，横向排布</li>
+            <li><strong>组件层级</strong>: 审批按钮作为独立组件类别，与"默认按钮"同级别</li>
+            <li><strong>添加方式</strong>: 点击审批按钮时，只添加到表单右上角，不添加到表单内容区域</li>
+            <li><strong>样式设计</strong>: 撤销审批按钮使用警告色样式，其他按钮使用默认样式</li>
+        </ul>
+    </div>
+
+    <script>
+        // 测试时间选择器功能
+        document.getElementById('datetime').addEventListener('change', function(e) {
+            console.log('选择的日期时间:', e.target.value);
+            alert('选择的日期时间: ' + e.target.value);
+        });
+
+        // 测试审批按钮功能
+        document.querySelectorAll('.approval-buttons .btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                alert('点击了: ' + this.textContent);
+            });
+        });
+    </script>
+</body>
+</html>

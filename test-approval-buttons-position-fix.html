@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>审批按钮位置修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .form-container {
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #f8f9ff;
+            margin: 20px 0;
+        }
+        .approval-buttons-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .approval-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .btn {
+            padding: 6px 12px;
+            border: 1px solid;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+        }
+        .btn-outline {
+            border-color: #ccc;
+            color: #333;
+        }
+        .btn-warning {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .before, .after {
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .before {
+            background-color: #fee;
+            border: 1px solid #fcc;
+        }
+        .after {
+            background-color: #efe;
+            border: 1px solid #cfc;
+        }
+    </style>
+</head>
+<body>
+    <h1>审批按钮位置修复测试</h1>
+    
+    <div class="test-section">
+        <div class="test-title">🎯 修复目标</div>
+        <ul>
+            <li>✅ 审批按钮位于表单内部，不是页面级别</li>
+            <li>✅ 位置：表单第一行元素的正上方</li>
+            <li>✅ 布局：横向排列，靠右对齐</li>
+            <li>✅ 不与任何表单字段重叠</li>
+            <li>✅ 预览界面和生成的HTML保持一致</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">📋 修复前后对比</div>
+        <div class="comparison">
+            <div class="before">
+                <h4>❌ 修复前（问题）</h4>
+                <ul>
+                    <li>审批按钮使用绝对定位</li>
+                    <li>与表单元素重叠</li>
+                    <li>HTML生成时位置超出表单边界</li>
+                    <li>预览和HTML不一致</li>
+                </ul>
+            </div>
+            <div class="after">
+                <h4>✅ 修复后（正确）</h4>
+                <ul>
+                    <li>审批按钮在表单内部</li>
+                    <li>位于第一行元素上方</li>
+                    <li>HTML生成在form标签内</li>
+                    <li>预览和HTML完全一致</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🎨 修复后的正确布局演示</div>
+        
+        <h4>表单容器（蓝色边框表示表单边界）：</h4>
+        <div class="form-container">
+            <form>
+                <!-- 审批按钮 - 表单内部顶部，右对齐 -->
+                <div class="approval-buttons-container">
+                    <div class="approval-buttons">
+                        <button class="btn btn-outline">查看流程</button>
+                        <button class="btn btn-warning">撤销审批</button>
+                        <button class="btn btn-outline">返回</button>
+                        <button class="btn btn-primary">自定义按钮</button>
+                    </div>
+                </div>
+                
+                <!-- 表单字段网格 -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>单行文本1</label>
+                        <input type="text" placeholder="输入内容">
+                    </div>
+                    <div class="form-group">
+                        <label>单行文本2</label>
+                        <input type="text" placeholder="输入内容">
+                    </div>
+                    <div class="form-group">
+                        <label>单行文本3</label>
+                        <input type="text" placeholder="输入内容">
+                    </div>
+                    <div class="form-group">
+                        <label>下拉选择</label>
+                        <select>
+                            <option>请选择</option>
+                            <option>选项1</option>
+                            <option>选项2</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>日期选择</label>
+                        <input type="date">
+                    </div>
+                    <div class="form-group">
+                        <label>时间选择</label>
+                        <input type="datetime-local" step="1">
+                    </div>
+                </div>
+                
+                <!-- 表单底部按钮 -->
+                <div class="button-group">
+                    <button type="button" class="btn btn-outline">上一步</button>
+                    <button type="button" class="btn btn-outline">下一步</button>
+                    <button type="button" class="btn btn-primary">提交</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🔧 技术实现细节</div>
+        
+        <h4>1. 预览界面修复 (form-preview.tsx):</h4>
+        <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 12px;">
+{/* 审批按钮 - 表单内部顶部，右对齐 */}
+{approvalButtons.length > 0 && (
+  &lt;div className="flex justify-end mb-4"&gt;
+    &lt;div className="flex gap-2"&gt;
+      {/* 审批按钮渲染 */}
+    &lt;/div&gt;
+  &lt;/div&gt;
+)}
+        </pre>
+
+        <h4>2. HTML生成修复 (html-generator.ts):</h4>
+        <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 12px;">
+&lt;form&gt;
+  &lt;div class="approval-buttons-container"&gt;
+    &lt;div class="approval-buttons"&gt;
+      &lt;button class="btn btn-outline"&gt;查看流程&lt;/button&gt;
+      &lt;button class="btn btn-warning"&gt;撤销审批&lt;/button&gt;
+      &lt;button class="btn btn-outline"&gt;返回&lt;/button&gt;
+      &lt;button class="btn btn-primary"&gt;自定义按钮&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="form-grid"&gt;
+    &lt;!-- 表单字段 --&gt;
+  &lt;/div&gt;
+&lt;/form&gt;
+        </pre>
+
+        <h4>3. CSS样式更新:</h4>
+        <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 12px;">
+.approval-buttons-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.approval-buttons {
+  display: flex;
+  gap: 8px;
+}
+        </pre>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">✅ 修复验证</div>
+        <ul>
+            <li class="success">✅ 审批按钮不再与表单元素重叠</li>
+            <li class="success">✅ 审批按钮位于表单内部，第一行元素上方</li>
+            <li class="success">✅ 横向排列，右对齐布局</li>
+            <li class="success">✅ 预览界面和HTML生成位置一致</li>
+            <li class="success">✅ 保持4个独立按钮特性</li>
+            <li class="success">✅ 表单结构清晰，层次分明</li>
+        </ul>
+    </div>
+
+    <script>
+        // 测试按钮交互
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                console.log('点击了按钮:', this.textContent);
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -27,9 +27,14 @@ const fieldTypes = [
   { value: "select", label: "下拉选择框" },
   { value: "yesno", label: "是否下拉" },
   { value: "datepicker", label: "日期选择器" },
+  { value: "datetimepicker", label: "时间选择器" },
   { value: "button", label: "按钮" },
   { value: "modal", label: "弹窗选择" },
   { value: "actionbar", label: "操作栏" },
+  { value: "approval-view-process", label: "查看流程" },
+  { value: "approval-revoke", label: "撤销审批" },
+  { value: "approval-return", label: "返回" },
+  { value: "approval-custom", label: "自定义按钮" },
 ]
 
 const PropertyPanel: React.FC<PropertyPanelProps> = ({
@@ -214,14 +219,19 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
           </div>
 
           {/* Common Properties */}
-          <div className="space-y-2">
-            <Label htmlFor="label">标签名称</Label>
-            <Input
-              id="label"
-              value={selectedComponent.props.label || ""}
-              onChange={(e) => handleComponentChange("label", e.target.value)}
-            />
-          </div>
+          {!(selectedComponent.type === "approval-view-process" ||
+            selectedComponent.type === "approval-revoke" ||
+            selectedComponent.type === "approval-return" ||
+            selectedComponent.type === "approval-custom") && (
+            <div className="space-y-2">
+              <Label htmlFor="label">标签名称</Label>
+              <Input
+                id="label"
+                value={selectedComponent.props.label || ""}
+                onChange={(e) => handleComponentChange("label", e.target.value)}
+              />
+            </div>
+          )}
 
           {/* Type specific properties */}
           {selectedComponent.type === "text" && (
@@ -259,7 +269,11 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
           )}
 
-          {selectedComponent.type === "button" && (
+          {(selectedComponent.type === "button" ||
+            selectedComponent.type === "approval-view-process" ||
+            selectedComponent.type === "approval-revoke" ||
+            selectedComponent.type === "approval-return" ||
+            selectedComponent.type === "approval-custom") && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="text">按钮文本</Label>
@@ -269,6 +283,24 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   onChange={(e) => handleComponentChange("text", e.target.value)}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="buttonType">按钮类型</Label>
+                <Select
+                  value={selectedComponent.props.type || "default"}
+                  onValueChange={(value) => handleComponentChange("type", value)}
+                >
+                  <SelectTrigger id="buttonType">
+                    <SelectValue placeholder="选择按钮类型" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">默认</SelectItem>
+                    <SelectItem value="primary">主要</SelectItem>
+                    <SelectItem value="warning">警告</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="color">按钮颜色</Label>
                 <div className="flex items-center space-x-2">
@@ -502,7 +534,13 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
           {selectedComponent.type !== "actionbar" && (
             <>
               <div className="flex items-center justify-between">
-                <Label htmlFor="disabled">禁用编辑</Label>
+                <Label htmlFor="disabled">
+                  {(selectedComponent.type === "button" ||
+                    selectedComponent.type === "approval-view-process" ||
+                    selectedComponent.type === "approval-revoke" ||
+                    selectedComponent.type === "approval-return" ||
+                    selectedComponent.type === "approval-custom") ? "禁用按钮" : "禁用编辑"}
+                </Label>
                 <Switch
                   id="disabled"
                   checked={selectedComponent.props.disabled || false}
@@ -510,14 +548,20 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <Label htmlFor="required">必填项</Label>
-                <Switch
-                  id="required"
-                  checked={selectedComponent.props.required || false}
-                  onCheckedChange={(checked) => handleComponentChange("required", checked)}
-                />
-              </div>
+              {/* 审批按钮不需要必填项设置 */}
+              {!(selectedComponent.type === "approval-view-process" ||
+                selectedComponent.type === "approval-revoke" ||
+                selectedComponent.type === "approval-return" ||
+                selectedComponent.type === "approval-custom") && (
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="required">必填项</Label>
+                  <Switch
+                    id="required"
+                    checked={selectedComponent.props.required || false}
+                    onCheckedChange={(checked) => handleComponentChange("required", checked)}
+                  />
+                </div>
+              )}
             </>
           )}
         </div>

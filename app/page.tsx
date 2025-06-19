@@ -37,6 +37,7 @@ export interface AppState {
   selectedItemId: string | null
   selectedComponent: any
   metadata: FormMetadata
+  approvalButtons: any[]
 }
 
 export default function FormBuilder() {
@@ -50,6 +51,7 @@ export default function FormBuilder() {
       creationDate: format(new Date(), "yyyy-MM-dd"),
       version: "1.0.0",
     },
+    approvalButtons: [],
   })
   const [previewMode, setPreviewMode] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -133,6 +135,30 @@ export default function FormBuilder() {
       return
     }
 
+    // 处理审批按钮的特殊情况 - 添加到独立的审批按钮状态
+    if (component.type === "approval-view-process" ||
+        component.type === "approval-revoke" ||
+        component.type === "approval-return" ||
+        component.type === "approval-custom") {
+
+      const newApprovalButton = {
+        ...component,
+        id: `${component.type}_${Date.now()}`,
+        props: {
+          text: component.props?.text || component.label || getFieldTypeLabel(component.type),
+          type: component.props?.type || (component.type === "approval-revoke" ? "warning" : component.type === "approval-custom" ? "primary" : "default"),
+          disabled: false,
+          ...component.props,
+        },
+      }
+
+      setAppState((prev) => ({
+        ...prev,
+        approvalButtons: [...prev.approvalButtons, newApprovalButton],
+      }))
+      return
+    }
+
     const newComponent = {
       ...component,
       id: `${component.type}_${Date.now()}`,
@@ -156,6 +182,50 @@ export default function FormBuilder() {
     setAppState((prev) => ({
       ...prev,
       selectedComponent: component,
+    }))
+  }
+
+  // 审批按钮管理函数
+  const handleSelectApprovalButton = (button: any) => {
+    setAppState((prev) => ({
+      ...prev,
+      selectedComponent: button,
+    }))
+  }
+
+  const handleUpdateApprovalButton = (buttonId: string, props: any) => {
+    setAppState((prev) => ({
+      ...prev,
+      approvalButtons: prev.approvalButtons.map((button) =>
+        button.id === buttonId ? { ...button, props: { ...button.props, ...props } } : button
+      ),
+    }))
+
+    if (appState.selectedComponent && appState.selectedComponent.id === buttonId) {
+      setAppState((prev) => ({
+        ...prev,
+        selectedComponent: { ...prev.selectedComponent, props: { ...prev.selectedComponent.props, ...props } },
+      }))
+    }
+  }
+
+  const handleDeleteApprovalButton = (buttonId: string) => {
+    setAppState((prev) => ({
+      ...prev,
+      approvalButtons: prev.approvalButtons.filter((button) => button.id !== buttonId),
+      selectedComponent: prev.selectedComponent && prev.selectedComponent.id === buttonId ? null : prev.selectedComponent,
+    }))
+  }
+
+  const handleDuplicateApprovalButton = (button: any) => {
+    const newButton = {
+      ...button,
+      id: `${button.type}_${Date.now()}`,
+    }
+
+    setAppState((prev) => ({
+      ...prev,
+      approvalButtons: [...prev.approvalButtons, newButton],
     }))
   }
 
@@ -332,9 +402,14 @@ export default function FormBuilder() {
       select: "下拉选择框",
       yesno: "是否下拉",
       datepicker: "日期选择器",
+      datetimepicker: "时间选择器",
       button: "按钮",
       modal: "弹窗选择",
       actionbar: "操作栏",
+      "approval-view-process": "查看流程",
+      "approval-revoke": "撤销审批",
+      "approval-return": "返回",
+      "approval-custom": "自定义按钮",
     }
     return typeMap[type] || type
   }
@@ -389,6 +464,7 @@ export default function FormBuilder() {
         layoutItems: [],
         selectedItemId: null,
         selectedComponent: null,
+        approvalButtons: [],
       })
       toast({
         title: "已清空",
@@ -483,6 +559,11 @@ export default function FormBuilder() {
   }
 
   const selectedLayoutItem = appState.layoutItems.find((item) => item.id === appState.selectedItemId)
+
+  // 获取所有审批按钮
+  const getAllApprovalButtons = () => {
+    return appState.approvalButtons
+  }
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -629,6 +710,10 @@ export default function FormBuilder() {
                     onReorderComponents={handleReorderComponents}
                     onImportFields={handleImportFields}
                     previewMode={previewMode}
+                    approvalButtons={getAllApprovalButtons()}
+                    onDeleteApprovalButton={handleDeleteApprovalButton}
+                    onDuplicateApprovalButton={handleDuplicateApprovalButton}
+                    onSelectApprovalButton={handleSelectApprovalButton}
                   />
                 </div>
               </div>
@@ -643,7 +728,14 @@ export default function FormBuilder() {
               selectedComponent={appState.selectedComponent}
               selectedLayoutItem={selectedLayoutItem}
               onUpdateComponent={(componentId, props) => {
-                if (appState.selectedItemId) {
+                // 检查是否是审批按钮
+                if (appState.selectedComponent &&
+                    (appState.selectedComponent.type === "approval-view-process" ||
+                     appState.selectedComponent.type === "approval-revoke" ||
+                     appState.selectedComponent.type === "approval-return" ||
+                     appState.selectedComponent.type === "approval-custom")) {
+                  handleUpdateApprovalButton(componentId, props)
+                } else if (appState.selectedItemId) {
                   handleUpdateComponent(appState.selectedItemId, componentId, props)
                 }
               }}

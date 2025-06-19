@@ -11,11 +11,13 @@ import {
   ToggleLeft,
   List,
   Calendar,
+  Clock,
   BoxIcon as ButtonIcon,
   Maximize2,
   ListFilter,
   Settings,
   CheckCircle,
+  FileCheck,
 } from "lucide-react"
 import type { LayoutItem } from "@/app/page"
 
@@ -72,6 +74,15 @@ const fieldComponents = [
     label: "日期选择器",
     props: {
       placeholder: "请选择日期",
+    },
+  },
+  {
+    type: "datetimepicker",
+    icon: <Clock className="h-4 w-4 mr-2" />,
+    label: "时间选择器",
+    props: {
+      placeholder: "请选择日期时间",
+      showTime: true,
     },
   },
   {
@@ -276,6 +287,107 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
                   {button.text}
                 </Button>
               ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="approval">
+          <AccordionTrigger className="py-2">
+            <div className="flex items-center">
+              <FileCheck className="h-4 w-4 mr-2" />
+              <span>审批按钮</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="mt-2 space-y-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+                onClick={() =>
+                  onAddComponent(
+                    {
+                      type: "approval-view-process",
+                      icon: <FileCheck className="h-4 w-4 mr-2" />,
+                      label: "查看流程",
+                      props: {
+                        text: "查看流程",
+                        type: "default",
+                        position: "top-right",
+                      },
+                    },
+                    selectedItemId,
+                  )
+                }
+              >
+                查看流程
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+                onClick={() =>
+                  onAddComponent(
+                    {
+                      type: "approval-revoke",
+                      icon: <FileCheck className="h-4 w-4 mr-2" />,
+                      label: "撤销审批",
+                      props: {
+                        text: "撤销审批",
+                        type: "warning",
+                        position: "top-right",
+                      },
+                    },
+                    selectedItemId,
+                  )
+                }
+              >
+                撤销审批
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+                onClick={() =>
+                  onAddComponent(
+                    {
+                      type: "approval-return",
+                      icon: <FileCheck className="h-4 w-4 mr-2" />,
+                      label: "返回",
+                      props: {
+                        text: "返回",
+                        type: "default",
+                        position: "top-right",
+                      },
+                    },
+                    selectedItemId,
+                  )
+                }
+              >
+                返回
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+                onClick={() =>
+                  onAddComponent(
+                    {
+                      type: "approval-custom",
+                      icon: <FileCheck className="h-4 w-4 mr-2" />,
+                      label: "自定义按钮",
+                      props: {
+                        text: "自定义按钮",
+                        type: "primary",
+                        position: "top-right",
+                      },
+                    },
+                    selectedItemId,
+                  )
+                }
+              >
+                自定义按钮
+              </Button>
             </div>
           </AccordionContent>
         </AccordionItem>

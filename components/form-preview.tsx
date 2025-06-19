@@ -27,6 +27,10 @@ interface FormPreviewProps {
   selectedComponentId: string | null | undefined
   viewType: "form" | "list" | "checklist"
   previewMode: boolean
+  approvalButtons?: any[]
+  onDeleteApprovalButton?: (buttonId: string) => void
+  onDuplicateApprovalButton?: (button: any) => void
+  onSelectApprovalButton?: (button: any) => void
 }
 
 interface DraggableComponentProps {
@@ -309,6 +313,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   selectedComponentId,
   viewType,
   previewMode,
+  approvalButtons = [],
+  onDeleteApprovalButton,
+  onDuplicateApprovalButton,
+  onSelectApprovalButton,
 }) => {
   // 存储列宽的状态
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>({})
@@ -555,6 +563,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({
     )
   }
 
+  // 过滤掉审批按钮，因为它们现在在页面级别显示
+  const regularButtons = buttons.filter(component => component.type !== "approvalbuttons")
+
   // 表单视图：将非按钮组件分组为每行3列
   const formRows = []
   for (let i = 0; i < otherComponents.length; i += 3) {
@@ -563,6 +574,61 @@ const FormPreview: React.FC<FormPreviewProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* 审批按钮 - 表单内部顶部，右对齐 */}
+      {approvalButtons.length > 0 && (
+        <div className="flex justify-end mb-4">
+          <div className="flex gap-2">
+            {approvalButtons.map((component) => (
+              <div
+                key={component.id}
+                className={`relative group ${
+                  selectedComponentId === component.id && !previewMode
+                    ? "ring-2 ring-blue-500 rounded"
+                    : ""
+                }`}
+              >
+                <Button
+                  disabled={previewMode ? component.props.disabled : false}
+                  style={{ backgroundColor: component.props.color || "#1890ff" }}
+                  className="text-white"
+                  onClick={() => !previewMode && onSelectApprovalButton && onSelectApprovalButton(component)}
+                >
+                  {component.props.text}
+                </Button>
+
+                {/* 操作按钮 - 与默认按钮保持一致 */}
+                {!previewMode && (
+                  <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 bg-white border shadow-sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDuplicateApprovalButton && onDuplicateApprovalButton(component)
+                      }}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 bg-white border shadow-sm text-red-500"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDeleteApprovalButton && onDeleteApprovalButton(component.id)
+                      }}
+                    >
+                      <Trash className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* 导入字段按钮 */}
       {!previewMode && otherComponents.length === 0 && (
         <div className="flex justify-center">
@@ -600,10 +666,10 @@ const FormPreview: React.FC<FormPreviewProps> = ({
         </div>
       ))}
 
-      {/* 表单底部按钮 - 居中显示 */}
-      {buttons.length > 0 && (
+      {/* 表单底部按钮 - 居中显示（不包括审批按钮） */}
+      {regularButtons.length > 0 && (
         <div className="flex justify-center space-x-4 pt-6 border-t border-gray-200">
-          {buttons.map((component, index) => (
+          {regularButtons.map((component, index) => (
             <div
               key={component.id}
               className={`${
@@ -772,6 +838,45 @@ const RenderComponent: React.FC<RenderComponentProps> = ({ component, previewMod
           </PopoverContent>
         </Popover>
       )
+    case "datetimepicker":
+      return (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
+              disabled={previewMode ? component.props.disabled : false}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date ? format(date, "PPP HH:mm:ss") : component.props.placeholder}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <div className="p-3">
+              <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
+              <div className="mt-3 border-t pt-3">
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="time"
+                    step="1"
+                    className="w-full"
+                    onChange={(e) => {
+                      if (date) {
+                        const [hours, minutes, seconds] = e.target.value.split(':');
+                        const newDate = new Date(date);
+                        newDate.setHours(parseInt(hours) || 0);
+                        newDate.setMinutes(parseInt(minutes) || 0);
+                        newDate.setSeconds(parseInt(seconds) || 0);
+                        setDate(newDate);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      )
     case "button":
       return (
         <Button
@@ -848,6 +953,19 @@ const RenderComponent: React.FC<RenderComponentProps> = ({ component, previewMod
             </Button>
           ))}
         </div>
+      )
+    case "approval-view-process":
+    case "approval-revoke":
+    case "approval-return":
+    case "approval-custom":
+      return (
+        <Button
+          disabled={previewMode ? component.props.disabled : false}
+          style={{ backgroundColor: component.props.color || "#1890ff" }}
+          className="text-white"
+        >
+          {component.props.text}
+        </Button>
       )
     default:
       return <div>未知组件类型</div>
