@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>按钮显示问题调试测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .debug-info {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        .step-number {
+            background-color: #2196f3;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .console-output {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .console-log {
+            color: #569cd6;
+        }
+        .console-warn {
+            color: #dcdcaa;
+        }
+        .console-error {
+            color: #f44747;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐛 按钮显示问题调试测试</h1>
+    
+    <div class="test-section">
+        <div class="test-title">🔍 调试信息已添加</div>
+        
+        <div class="debug-info">
+            <strong>已添加的调试日志：</strong>
+            <ul>
+                <li><strong>FormPreview 组件</strong>：输出组件数组和按钮过滤结果</li>
+                <li><strong>handleAddComponent 函数</strong>：输出按钮添加过程和状态更新</li>
+            </ul>
+        </div>
+        
+        <div class="highlight">
+            <strong>注意：</strong>现在当你添加按钮时，浏览器控制台会显示详细的调试信息，帮助我们找出问题所在。
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">📋 测试步骤</div>
+        
+        <div class="step">
+            <div class="step-number">1</div>
+            <div>
+                <strong>打开应用并准备调试</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    打开表单生成器应用，按F12打开开发者工具，切换到Console标签页
+                </div>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">2</div>
+            <div>
+                <strong>创建列表布局</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    选择"标签页"布局，创建一个新标签页，设置内容类型为"列表"
+                </div>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">3</div>
+            <div>
+                <strong>添加按钮并观察日志</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    从组件侧边栏的"默认按钮"区域点击"新增"按钮，观察控制台输出
+                </div>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">4</div>
+            <div>
+                <strong>分析调试输出</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    检查控制台中的调试信息，确认按钮是否被正确添加和过滤
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🔍 预期的控制台输出</div>
+        
+        <div class="console-output">
+<span class="console-log">Adding component:</span> {
+  itemId: "item_1234567890",
+  componentType: "button",
+  newComponent: {
+    id: "button_1234567890",
+    type: "button",
+    props: {
+      label: "新增",
+      text: "新增",
+      color: "#1890ff",
+      required: false,
+      disabled: false
+    }
+  },
+  originalComponent: { ... }
+}
+
+<span class="console-log">Updated item components:</span> [
+  { id: "button_1234567890", type: "button" }
+]
+
+<span class="console-log">FormPreview Debug:</span> {
+  viewType: "list",
+  totalComponents: 1,
+  components: [
+    { id: "button_1234567890", type: "button", label: "新增" }
+  ],
+  buttonsCount: 1,
+  buttons: [
+    { id: "button_1234567890", type: "button", text: "新增" }
+  ]
+}
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🚨 可能的问题场景</div>
+        
+        <div class="error">
+            <strong>场景1：按钮没有被添加</strong>
+            <div style="margin-top: 5px;">
+                如果控制台没有显示"Adding component"日志，说明按钮添加逻辑没有被触发
+            </div>
+        </div>
+        
+        <div class="error">
+            <strong>场景2：按钮类型不正确</strong>
+            <div style="margin-top: 5px;">
+                如果"componentType"不是"button"，说明组件侧边栏的按钮定义有问题
+            </div>
+        </div>
+        
+        <div class="error">
+            <strong>场景3：状态更新失败</strong>
+            <div style="margin-top: 5px;">
+                如果"Updated item components"为空或不包含按钮，说明状态更新有问题
+            </div>
+        </div>
+        
+        <div class="error">
+            <strong>场景4：按钮过滤失败</strong>
+            <div style="margin-top: 5px;">
+                如果"buttonsCount"为0但"totalComponents"大于0，说明按钮过滤逻辑有问题
+            </div>
+        </div>
+        
+        <div class="error">
+            <strong>场景5：渲染条件不满足</strong>
+            <div style="margin-top: 5px;">
+                如果按钮数据正确但界面没有显示，可能是渲染条件或CSS问题
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">✅ 成功场景</div>
+        
+        <div class="success">
+            <strong>如果一切正常，你应该看到：</strong>
+            <ul>
+                <li>控制台显示完整的调试信息</li>
+                <li>按钮被正确添加到组件数组</li>
+                <li>按钮被正确过滤出来</li>
+                <li>按钮在列表头部与"导入字段"按钮同行显示</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🔧 下一步行动</div>
+        
+        <div class="highlight">
+            <strong>根据调试结果：</strong>
+            <ol>
+                <li>如果按钮数据正确但不显示 → 检查渲染逻辑和CSS</li>
+                <li>如果按钮没有被添加 → 检查组件侧边栏的点击事件</li>
+                <li>如果按钮类型错误 → 修复组件定义</li>
+                <li>如果状态更新失败 → 检查状态管理逻辑</li>
+                <li>如果过滤失败 → 检查过滤条件</li>
+            </ol>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px; padding: 15px; background-color: #e3f2fd; border-radius: 8px; color: #1565c0;">
+            <strong>🔍 请按照测试步骤进行调试，并将控制台输出结果反馈给我</strong>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🐛 按钮显示问题调试测试页面已加载');
+            console.log('📋 请按照测试步骤进行调试');
+            console.log('🔍 注意观察控制台中的调试输出');
+        });
+    </script>
+</body>
+</html>

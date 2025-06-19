@@ -70,6 +70,25 @@ export const generateHtml = (appState: AppState) => {
       gap: 24px;
       margin-bottom: 24px;
     }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .col-span-1 {
+      grid-column: span 1;
+    }
+
+    .col-span-2 {
+      grid-column: span 2;
+    }
+
+    .col-span-3 {
+      grid-column: span 3;
+    }
     
     .form-group {
       display: flex;
@@ -732,11 +751,54 @@ function generateContentHtml(components: any[], contentType: string, approvalBut
 `
     }
 
-    html += `          <div class="form-grid">
-`
+    // 生成智能表单布局
+    const formRows = []
+    let currentRow = []
+    let currentRowSpan = 0
 
-    otherComponents.forEach((component) => {
-      html += `            <div class="form-group">
+    for (const component of otherComponents) {
+      const columnSpan = component.props.columnSpan || 1
+      const fullWidth = component.props.fullWidth || false
+
+      // 如果是独立一行，先完成当前行，然后单独成行
+      if (fullWidth) {
+        if (currentRow.length > 0) {
+          formRows.push(currentRow)
+          currentRow = []
+          currentRowSpan = 0
+        }
+        formRows.push([{ ...component, _renderSpan: 3 }])
+      } else {
+        // 检查当前行是否还能容纳这个字段
+        if (currentRowSpan + columnSpan > 3) {
+          // 当前行放不下，开始新行
+          if (currentRow.length > 0) {
+            formRows.push(currentRow)
+          }
+          currentRow = [{ ...component, _renderSpan: columnSpan }]
+          currentRowSpan = columnSpan
+        } else {
+          // 当前行可以容纳
+          currentRow.push({ ...component, _renderSpan: columnSpan })
+          currentRowSpan += columnSpan
+        }
+      }
+    }
+
+    // 添加最后一行
+    if (currentRow.length > 0) {
+      formRows.push(currentRow)
+    }
+
+    // 渲染表单行
+    formRows.forEach((row) => {
+      html += `          <div class="form-row">
+`
+      row.forEach((component) => {
+        const spanClass = component._renderSpan === 3 ? "col-span-3" :
+                         component._renderSpan === 2 ? "col-span-2" : "col-span-1"
+
+        html += `            <div class="form-group ${spanClass}">
               <label class="form-label">
                 ${component.props.required ? '<span class="required">*</span>' : ""}
                 ${component.props.label || component.type}
@@ -850,12 +912,12 @@ function generateContentHtml(components: any[], contentType: string, approvalBut
           html += `              <div>未知组件类型</div>
 `
       }
-      html += `            </div>
+        html += `            </div>
+`
+      })
+      html += `          </div>
 `
     })
-
-    html += `          </div>
-`
 
     if (buttons.length > 0) {
       html += `          <div class="button-group">
@@ -873,7 +935,7 @@ function generateContentHtml(components: any[], contentType: string, approvalBut
 
     html += `        </form>
 `
-  } else if (contentType === "list") {
+  } else if (contentType === "list" || contentType === "checklist") {
     const buttons = components.filter((comp) => comp.type === "button")
     const otherComponents = components.filter((comp) => comp.type !== "button")
 

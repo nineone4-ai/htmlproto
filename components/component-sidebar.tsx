@@ -18,6 +18,7 @@ import {
   Settings,
   CheckCircle,
   FileCheck,
+  CheckSquare,
 } from "lucide-react"
 import type { LayoutItem } from "@/app/page"
 
@@ -169,6 +170,12 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
   selectedLayoutItem,
   onAddComponent,
 }) => {
+  // 调试日志
+  console.log('=== ComponentSidebar Debug ===')
+  console.log('layoutType:', layoutType)
+  console.log('selectedItemId:', selectedItemId)
+  console.log('selectedLayoutItem:', selectedLayoutItem)
+  console.log('===============================')
   if (!layoutType) {
     return (
       <div className="p-4">
@@ -211,6 +218,14 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             <ListFilter className="h-4 w-4 mr-2" />
             列表
           </Button>
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+            onClick={() => onAddComponent({ contentType: "checklist" }, selectedItemId)}
+          >
+            <CheckSquare className="h-4 w-4 mr-2" />
+            复选框列表
+          </Button>
         </div>
       </div>
     )
@@ -219,7 +234,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
   // 根据内容类型过滤可用组件
   const availableComponents = fieldComponents.filter((component) => {
     if (component.type === "actionbar") {
-      return selectedLayoutItem.contentType === "list"
+      return selectedLayoutItem.contentType === "list" || selectedLayoutItem.contentType === "checklist"
     }
     return true
   })
@@ -228,7 +243,10 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
     <div className="p-4">
       <h2 className="text-lg font-semibold mb-4">组件</h2>
       <div className="mb-4 p-2 bg-blue-50 rounded text-sm">
-        当前：{selectedLayoutItem.name} ({selectedLayoutItem.contentType === "form" ? "表单" : "列表"})
+        当前：{selectedLayoutItem.name} ({
+          selectedLayoutItem.contentType === "form" ? "表单" :
+          selectedLayoutItem.contentType === "checklist" ? "复选框列表" : "列表"
+        })
       </div>
 
       <Accordion type="single" collapsible className="w-full">
@@ -269,7 +287,12 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
                   variant="outline"
                   size="sm"
                   className="text-xs"
-                  onClick={() =>
+                  onClick={() => {
+                    console.log('=== Button Click Debug ===')
+                    console.log('Button clicked:', button.text)
+                    console.log('selectedItemId:', selectedItemId)
+                    console.log('==========================')
+
                     onAddComponent(
                       {
                         type: "button",
@@ -282,7 +305,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
                       },
                       selectedItemId,
                     )
-                  }
+                  }}
                 >
                   {button.text}
                 </Button>

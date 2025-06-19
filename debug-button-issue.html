@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>列表模式按钮显示问题调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .debug-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .debug-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .issue-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #fff;
+            border-left: 4px solid #ff6b6b;
+        }
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #fff;
+            border-left: 4px solid #51cf66;
+        }
+        .status-icon {
+            font-size: 20px;
+            margin-top: 2px;
+        }
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .solution {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .test-steps {
+            background-color: #e2e3e5;
+            border: 1px solid #d6d8db;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐛 列表模式按钮显示问题调试报告</h1>
+    
+    <div class="debug-section">
+        <div class="debug-title">🔍 问题描述</div>
+        
+        <div class="issue-item">
+            <span class="status-icon">❌</span>
+            <div>
+                <strong>主要问题</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    在列表或复选框列表模式下，通过组件侧边栏添加普通按钮时，按钮没有正确显示在界面上
+                </div>
+            </div>
+        </div>
+        
+        <div class="issue-item">
+            <span class="status-icon">❌</span>
+            <div>
+                <strong>预期行为</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    按钮应该与"导入字段"按钮在同一行，居左显示
+                </div>
+            </div>
+        </div>
+        
+        <div class="issue-item">
+            <span class="status-icon">❌</span>
+            <div>
+                <strong>实际行为</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    按钮添加后没有在列表界面的头部区域显示出来
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <div class="debug-title">🔧 代码流程分析</div>
+        
+        <div class="check-item">
+            <span class="status-icon">✅</span>
+            <div>
+                <strong>1. 按钮添加逻辑 (app/page.tsx:131-178)</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    handleAddComponent 函数正确处理按钮添加到 layoutItems[].components 数组
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+const handleAddComponent = (component: any, itemId: string) => {
+  const newComponent = {
+    ...component,
+    id: `${component.type}_${Date.now()}`,
+    props: {
+      label: `${component.label || component.type}`,
+      required: false,
+      disabled: false,
+      ...component.props,
+    },
+  }
+
+  setAppState((prev) => ({
+    ...prev,
+    layoutItems: prev.layoutItems.map((item) =>
+      item.id === itemId ? { ...item, components: [...item.components, newComponent] } : item,
+    ),
+  }))
+}
+        </div>
+        
+        <div class="check-item">
+            <span class="status-icon">✅</span>
+            <div>
+                <strong>2. 组件传递逻辑 (layout-preview.tsx:303)</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    FormPreview 组件正确接收 item.components 作为 components 属性
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+&lt;FormPreview
+  components={item.components}  // ✅ 正确传递组件数组
+  onSelectComponent={onSelectComponent}
+  onDeleteComponent={(componentId) => onDeleteComponent(item.id, componentId)}
+  // ... 其他属性
+  viewType={item.contentType}
+  previewMode={previewMode}
+/&gt;
+        </div>
+        
+        <div class="check-item">
+            <span class="status-icon">✅</span>
+            <div>
+                <strong>3. 按钮过滤逻辑 (form-preview.tsx:394)</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    FormPreview 组件正确过滤出按钮组件
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+// 分离按钮和其他组件
+const buttons = components.filter((comp) => comp.type === "button")  // ✅ 正确过滤
+const otherComponents = components.filter((comp) => comp.type !== "button")
+        </div>
+        
+        <div class="check-item">
+            <span class="status-icon">✅</span>
+            <div>
+                <strong>4. 列表模式渲染逻辑 (form-preview.tsx:423-440)</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    列表模式下正确检查 buttons.length 并渲染按钮
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+{/* 列表上方的按钮 - 与导入字段按钮同行，居左显示 */}
+{buttons.length > 0 && (  // ✅ 正确检查按钮数量
+  &lt;div className="flex flex-wrap gap-2"&gt;
+    {buttons.map((component, index) => (  // ✅ 正确遍历按钮
+      &lt;DraggableComponent
+        key={component.id}
+        component={component}
+        // ... 其他属性
+      /&gt;
+    ))}
+  &lt;/div&gt;
+)}
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <div class="debug-title">🤔 可能的问题点</div>
+        
+        <div class="highlight">
+            <strong>关键疑问：</strong>既然代码逻辑看起来都是正确的，为什么按钮没有显示？
+        </div>
+        
+        <div class="issue-item">
+            <span class="status-icon">❓</span>
+            <div>
+                <strong>可能问题1：组件状态更新</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    按钮可能没有正确添加到状态中，或者状态更新没有触发重新渲染
+                </div>
+            </div>
+        </div>
+        
+        <div class="issue-item">
+            <span class="status-icon">❓</span>
+            <div>
+                <strong>可能问题2：组件类型匹配</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    添加的组件 type 可能不是 "button"，导致过滤失败
+                </div>
+            </div>
+        </div>
+        
+        <div class="issue-item">
+            <span class="status-icon">❓</span>
+            <div>
+                <strong>可能问题3：内容类型检查</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    可能存在内容类型检查逻辑阻止了按钮在列表模式下显示
+                </div>
+            </div>
+        </div>
+        
+        <div class="issue-item">
+            <span class="status-icon">❓</span>
+            <div>
+                <strong>可能问题4：CSS样式问题</strong>
+                <div style="margin-top: 5px; color: #666;">
+                    按钮可能被渲染了但是被CSS隐藏或者位置不正确
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <div class="debug-title">🔍 调试建议</div>
+        
+        <div class="test-steps">
+            <h4>调试步骤：</h4>
+            <ol>
+                <li><strong>检查组件状态</strong>：在 FormPreview 组件中添加 console.log 输出 components 和 buttons 数组</li>
+                <li><strong>验证按钮添加</strong>：在 handleAddComponent 中添加 console.log 确认按钮被正确添加</li>
+                <li><strong>检查组件类型</strong>：确认添加的按钮组件的 type 属性确实是 "button"</li>
+                <li><strong>验证渲染条件</strong>：检查 buttons.length > 0 条件是否满足</li>
+                <li><strong>检查CSS样式</strong>：使用浏览器开发者工具检查按钮元素是否存在但被隐藏</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <div class="debug-title">🛠️ 修复方案</div>
+        
+        <div class="solution">
+            <h4>方案1：添加调试日志</h4>
+            <p>在关键位置添加 console.log 来追踪数据流：</p>
+            <div class="code-block">
+// 在 FormPreview 组件中添加
+console.log('FormPreview components:', components)
+console.log('FormPreview buttons:', buttons)
+console.log('FormPreview viewType:', viewType)
+
+// 在 handleAddComponent 中添加
+console.log('Adding component:', newComponent)
+console.log('Updated layoutItems:', updatedLayoutItems)
+            </div>
+        </div>
+        
+        <div class="solution">
+            <h4>方案2：检查组件侧边栏按钮定义</h4>
+            <p>确认组件侧边栏中按钮的定义是否正确：</p>
+            <div class="code-block">
+// 检查 component-sidebar.tsx 中的按钮定义
+onClick={() =>
+  onAddComponent(
+    {
+      type: "button",  // ✅ 确保这里是 "button"
+      icon: &lt;ButtonIcon className="h-4 w-4 mr-2" /&gt;,
+      label: button.text,
+      props: {
+        text: button.text,
+        color: button.color,
+      },
+    },
+    selectedItemId,
+  )
+}
+            </div>
+        </div>
+        
+        <div class="solution">
+            <h4>方案3：强制重新渲染</h4>
+            <p>如果是状态更新问题，可以尝试强制重新渲染：</p>
+            <div class="code-block">
+// 在状态更新后添加强制更新
+setAppState((prev) => ({
+  ...prev,
+  layoutItems: prev.layoutItems.map((item) =>
+    item.id === itemId ? { ...item, components: [...item.components, newComponent] } : item,
+  ),
+  // 添加一个时间戳强制更新
+  lastUpdate: Date.now()
+}))
+            </div>
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <div class="debug-title">📋 测试清单</div>
+        
+        <div class="test-steps">
+            <h4>测试步骤：</h4>
+            <ol>
+                <li>创建一个新的标签页/折叠项/卡片</li>
+                <li>设置内容类型为"列表"</li>
+                <li>打开浏览器开发者工具的控制台</li>
+                <li>从组件侧边栏添加一个默认按钮（如"新增"）</li>
+                <li>检查控制台输出，确认：
+                    <ul>
+                        <li>按钮是否被添加到 components 数组</li>
+                        <li>buttons 数组是否包含添加的按钮</li>
+                        <li>buttons.length 是否大于 0</li>
+                        <li>是否进入了按钮渲染逻辑</li>
+                    </ul>
+                </li>
+                <li>检查DOM元素，确认按钮元素是否存在</li>
+                <li>重复测试复选框列表模式</li>
+            </ol>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px; padding: 20px; background-color: #fff3cd; border-radius: 8px; border: 1px solid #ffeaa7;">
+        <strong>🔍 下一步：需要添加调试日志来确定具体的问题点</strong>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🐛 列表模式按钮显示问题调试页面已加载');
+            console.log('📋 请按照调试建议进行问题排查');
+        });
+    </script>
+</body>
+</html>

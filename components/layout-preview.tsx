@@ -43,7 +43,7 @@ const LayoutPreview: React.FC<LayoutPreviewProps> = ({
   onDuplicateApprovalButton,
   onSelectApprovalButton,
 }) => {
-  const { layoutType, layoutItems, selectedItemId } = appState
+  const { layoutType, layoutItems, selectedItemId, selectedComponent } = appState
 
   const handleSetContentType = (itemId: string, contentType: "form" | "list" | "checklist") => {
     onUpdateLayoutItem(itemId, { contentType })
@@ -111,6 +111,7 @@ const LayoutPreview: React.FC<LayoutPreviewProps> = ({
               onDeleteApprovalButton={onDeleteApprovalButton}
               onDuplicateApprovalButton={onDuplicateApprovalButton}
               onSelectApprovalButton={onSelectApprovalButton}
+              selectedComponentId={selectedComponent?.id || null}
             />
           </TabsContent>
         ))}
@@ -165,6 +166,7 @@ const LayoutPreview: React.FC<LayoutPreviewProps> = ({
                 onDeleteApprovalButton={onDeleteApprovalButton}
                 onDuplicateApprovalButton={onDuplicateApprovalButton}
                 onSelectApprovalButton={onSelectApprovalButton}
+                selectedComponentId={selectedComponent?.id || null}
               />
             </AccordionContent>
           </AccordionItem>
@@ -215,6 +217,7 @@ const LayoutPreview: React.FC<LayoutPreviewProps> = ({
                 onDeleteApprovalButton={onDeleteApprovalButton}
                 onDuplicateApprovalButton={onDuplicateApprovalButton}
                 onSelectApprovalButton={onSelectApprovalButton}
+                selectedComponentId={selectedComponent?.id || null}
               />
             </CardContent>
           </Card>
@@ -240,6 +243,7 @@ interface LayoutItemContentProps {
   onDeleteApprovalButton?: (buttonId: string) => void
   onDuplicateApprovalButton?: (button: any) => void
   onSelectApprovalButton?: (button: any) => void
+  selectedComponentId?: string | null
 }
 
 const LayoutItemContent: React.FC<LayoutItemContentProps> = ({
@@ -256,6 +260,7 @@ const LayoutItemContent: React.FC<LayoutItemContentProps> = ({
   onDeleteApprovalButton,
   onDuplicateApprovalButton,
   onSelectApprovalButton,
+  selectedComponentId,
 }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "COMPONENT",
@@ -306,7 +311,7 @@ const LayoutItemContent: React.FC<LayoutItemContentProps> = ({
         onDuplicateComponent={(component) => onDuplicateComponent(item.id, component)}
         onReorderComponents={(dragIndex, hoverIndex) => onReorderComponents(item.id, dragIndex, hoverIndex)}
         onImportFields={(fields) => onImportFields(item.id, fields)}
-        selectedComponentId={isSelected ? undefined : null}
+        selectedComponentId={selectedComponentId}
         viewType={item.contentType}
         previewMode={previewMode}
         approvalButtons={approvalButtons}

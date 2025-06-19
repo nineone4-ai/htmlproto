@@ -170,12 +170,26 @@ export default function FormBuilder() {
       },
     }
 
-    setAppState((prev) => ({
-      ...prev,
-      layoutItems: prev.layoutItems.map((item) =>
-        item.id === itemId ? { ...item, components: [...item.components, newComponent] } : item,
-      ),
-    }))
+    console.log('=== handleAddComponent Debug ===')
+    console.log('itemId:', itemId)
+    console.log('component.type:', component.type)
+    console.log('newComponent:', newComponent)
+    console.log('================================')
+
+    setAppState((prev) => {
+      const updatedState = {
+        ...prev,
+        layoutItems: prev.layoutItems.map((item) =>
+          item.id === itemId ? { ...item, components: [...item.components, newComponent] } : item,
+        ),
+      }
+
+      const targetItem = updatedState.layoutItems.find(item => item.id === itemId)
+      console.log('Updated target item:', targetItem)
+      console.log('Updated components:', targetItem?.components)
+
+      return updatedState
+    })
   }
 
   const handleSelectComponent = (component: any) => {

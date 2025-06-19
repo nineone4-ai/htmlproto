@@ -160,6 +160,49 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({
     )
   }
 
+  // 列表模式下的按钮渲染
+  if ((viewType === "list" || viewType === "checklist") && component.type === "button") {
+    return (
+      <div
+        ref={ref}
+        style={{ opacity }}
+        data-handler-id={handlerId}
+        className={`relative group ${
+          selectedComponentId === component.id && !previewMode ? "ring-2 ring-blue-500 rounded" : ""
+        }`}
+        onClick={() => !previewMode && onSelectComponent(component)}
+      >
+        <RenderComponent component={component} previewMode={previewMode} />
+        {!previewMode && (
+          <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5 bg-white border shadow-sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                onDuplicateComponent(component)
+              }}
+            >
+              <Copy className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5 bg-white border shadow-sm text-red-500"
+              onClick={(e) => {
+                e.stopPropagation()
+                onDeleteComponent(component.id)
+              }}
+            >
+              <Trash className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return null
 }
 
@@ -396,6 +439,15 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   const actionBars = components.filter((comp) => comp.type === "actionbar")
   const fieldsAndOthers = components.filter((comp) => comp.type !== "button" && comp.type !== "actionbar")
 
+  // 调试日志 - 临时保留
+  console.log('=== FormPreview Debug ===')
+  console.log('viewType:', viewType)
+  console.log('previewMode:', previewMode)
+  console.log('components:', components)
+  console.log('buttons:', buttons)
+  console.log('buttons.length:', buttons.length)
+  console.log('=========================')
+
   // 处理列宽调整开始
   const handleResizeStart = (e: React.MouseEvent, componentId: string, initialWidth: number) => {
     e.preventDefault()
@@ -414,37 +466,38 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   if (viewType === "list" || viewType === "checklist") {
     return (
       <div className="w-full">
-        {/* 导入字段按钮 */}
-        {!previewMode && (
-          <div className="mb-4 flex justify-between items-center">
-            <ImportFieldsDialog onImportFields={onImportFields} />
+        {/* 导入字段按钮和列表按钮 */}
+        <div className="mb-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            {!previewMode && <ImportFieldsDialog onImportFields={onImportFields} />}
+            {/* 列表上方的按钮 - 与导入字段按钮同行，居左显示 */}
+            {buttons.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {buttons.map((component, index) => (
+                  <DraggableComponent
+                    key={component.id}
+                    component={component}
+                    index={index}
+                    onSelectComponent={onSelectComponent}
+                    onDeleteComponent={onDeleteComponent}
+                    onDuplicateComponent={onDuplicateComponent}
+                    onReorderComponents={onReorderComponents}
+                    selectedComponentId={selectedComponentId}
+                    previewMode={previewMode}
+                    viewType={viewType}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+          {!previewMode && (
             <span className="text-sm text-gray-500">
               {viewType === "checklist"
                 ? "拖拽图标可调整列顺序，拖拽列头边缘可调整列宽，复选框可选择行"
                 : "拖拽图标可调整列顺序，拖拽列头边缘可调整列宽"}
             </span>
-          </div>
-        )}
-
-        {/* 列表上方的按钮 */}
-        {buttons.length > 0 && (
-          <div className="mb-4 flex flex-wrap gap-2">
-            {buttons.map((component, index) => (
-              <DraggableComponent
-                key={component.id}
-                component={component}
-                index={index}
-                onSelectComponent={onSelectComponent}
-                onDeleteComponent={onDeleteComponent}
-                onDuplicateComponent={onDuplicateComponent}
-                onReorderComponents={onReorderComponents}
-                selectedComponentId={selectedComponentId}
-                previewMode={previewMode}
-                viewType={viewType}
-              />
-            ))}
-          </div>
-        )}
+          )}
+        </div>
 
         {/* 复选列表顶部操作栏 */}
         {viewType === "checklist" && selectedRows.size > 0 && (
@@ -566,10 +619,43 @@ const FormPreview: React.FC<FormPreviewProps> = ({
   // 过滤掉审批按钮，因为它们现在在页面级别显示
   const regularButtons = buttons.filter(component => component.type !== "approvalbuttons")
 
-  // 表单视图：将非按钮组件分组为每行3列
+  // 表单视图：根据字段的布局属性进行智能分组
   const formRows = []
-  for (let i = 0; i < otherComponents.length; i += 3) {
-    formRows.push(otherComponents.slice(i, i + 3))
+  let currentRow = []
+  let currentRowSpan = 0
+
+  for (const component of otherComponents) {
+    const columnSpan = component.props.columnSpan || 1
+    const fullWidth = component.props.fullWidth || false
+
+    // 如果是独立一行，先完成当前行，然后单独成行
+    if (fullWidth) {
+      if (currentRow.length > 0) {
+        formRows.push(currentRow)
+        currentRow = []
+        currentRowSpan = 0
+      }
+      formRows.push([{ ...component, _renderSpan: 3 }])
+    } else {
+      // 检查当前行是否还能容纳这个字段
+      if (currentRowSpan + columnSpan > 3) {
+        // 当前行放不下，开始新行
+        if (currentRow.length > 0) {
+          formRows.push(currentRow)
+        }
+        currentRow = [{ ...component, _renderSpan: columnSpan }]
+        currentRowSpan = columnSpan
+      } else {
+        // 当前行可以容纳
+        currentRow.push({ ...component, _renderSpan: columnSpan })
+        currentRowSpan += columnSpan
+      }
+    }
+  }
+
+  // 添加最后一行
+  if (currentRow.length > 0) {
+    formRows.push(currentRow)
   }
 
   return (
@@ -647,20 +733,24 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       {formRows.map((row, rowIndex) => (
         <div key={rowIndex} className="grid grid-cols-3 gap-6">
           {row.map((component: any, colIndex: number) => {
-            const componentIndex = rowIndex * 3 + colIndex
+            const componentIndex = otherComponents.findIndex(comp => comp.id === component.id)
+            const spanClass = component._renderSpan === 3 ? "col-span-3" :
+                             component._renderSpan === 2 ? "col-span-2" : "col-span-1"
+
             return (
-              <DraggableComponent
-                key={component.id}
-                component={component}
-                index={componentIndex}
-                onSelectComponent={onSelectComponent}
-                onDeleteComponent={onDeleteComponent}
-                onDuplicateComponent={onDuplicateComponent}
-                onReorderComponents={onReorderComponents}
-                selectedComponentId={selectedComponentId}
-                previewMode={previewMode}
-                viewType={viewType}
-              />
+              <div key={component.id} className={spanClass}>
+                <DraggableComponent
+                  component={component}
+                  index={componentIndex}
+                  onSelectComponent={onSelectComponent}
+                  onDeleteComponent={onDeleteComponent}
+                  onDuplicateComponent={onDuplicateComponent}
+                  onReorderComponents={onReorderComponents}
+                  selectedComponentId={selectedComponentId}
+                  previewMode={previewMode}
+                  viewType={viewType}
+                />
+              </div>
             )
           })}
         </div>

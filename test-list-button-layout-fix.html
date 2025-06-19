@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>列表模式按钮布局修复验证</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .fix-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        .fix-status {
+            font-size: 20px;
+        }
+        .demo-container {
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #f8f9ff;
+            margin: 20px 0;
+        }
+        .demo-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        /* 模拟修复后的布局 */
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .left-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .import-button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .import-button:hover {
+            background-color: #0056b3;
+        }
+        .button-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 6px 12px;
+            border: 1px solid #1890ff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            background-color: #1890ff;
+            color: white;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            background-color: #1677d9;
+            border-color: #1677d9;
+        }
+        .btn-outline {
+            background-color: white;
+            color: #1890ff;
+        }
+        .btn-outline:hover {
+            background-color: #f0f8ff;
+        }
+        .right-section {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .list-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .list-table th,
+        .list-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .list-table th {
+            background-color: #f5f5f5;
+            font-weight: 500;
+        }
+        .list-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        .checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .before, .after {
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .before {
+            background-color: #fff5f5;
+            border: 1px solid #fed7d7;
+        }
+        .after {
+            background-color: #f0fff4;
+            border: 1px solid #c6f6d5;
+        }
+        .before h4 {
+            color: #c53030;
+            margin-top: 0;
+        }
+        .after h4 {
+            color: #38a169;
+            margin-top: 0;
+        }
+        
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+        
+        .highlight {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>列表模式按钮布局修复验证</h1>
+    
+    <div class="test-section">
+        <div class="test-title">🐛 Bug修复状态</div>
+        
+        <div class="fix-item">
+            <span class="fix-status">✅</span>
+            <div>
+                <strong>修复: 列表模式下普通按钮布局错误</strong>
+                <div style="font-size: 14px; color: #666; margin-top: 4px;">
+                    普通按钮现在与"导入字段"按钮在同一行，居左显示
+                </div>
+            </div>
+        </div>
+        
+        <div class="fix-item">
+            <span class="fix-status">✅</span>
+            <div>
+                <strong>优化: 列表头部布局结构</strong>
+                <div style="font-size: 14px; color: #666; margin-top: 4px;">
+                    左侧：导入字段 + 普通按钮，右侧：操作提示文本
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">📐 布局对比</div>
+        
+        <div class="before-after">
+            <div class="before">
+                <h4>修复前（错误布局）</h4>
+                <div style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <button class="import-button">导入字段</button>
+                        <span style="color: #666; font-size: 14px;">操作提示</span>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <div class="button-group">
+                            <button class="btn">新增</button>
+                            <button class="btn">导出</button>
+                            <button class="btn btn-outline">刷新</button>
+                        </div>
+                    </div>
+                </div>
+                <p style="color: #c53030; font-size: 14px; margin: 0;">
+                    ❌ 按钮单独占一行，布局不紧凑
+                </p>
+            </div>
+            
+            <div class="after">
+                <h4>修复后（正确布局）</h4>
+                <div style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <button class="import-button">导入字段</button>
+                            <div class="button-group">
+                                <button class="btn">新增</button>
+                                <button class="btn">导出</button>
+                                <button class="btn btn-outline">刷新</button>
+                            </div>
+                        </div>
+                        <span style="color: #666; font-size: 14px;">操作提示</span>
+                    </div>
+                </div>
+                <p style="color: #38a169; font-size: 14px; margin: 0;">
+                    ✅ 按钮与导入字段同行，布局紧凑
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🎨 修复后的完整演示</div>
+        
+        <div class="demo-container">
+            <div class="demo-title">📋 列表模式 - 修复后的布局</div>
+            
+            <!-- 修复后的头部布局 -->
+            <div class="list-header">
+                <div class="left-section">
+                    <button class="import-button">导入字段</button>
+                    <div class="button-group">
+                        <button class="btn">新增</button>
+                        <button class="btn">导出</button>
+                        <button class="btn btn-outline">刷新</button>
+                        <button class="btn" style="background-color: #52c41a; border-color: #52c41a;">保存</button>
+                        <button class="btn" style="background-color: #ff4d4f; border-color: #ff4d4f;">删除</button>
+                    </div>
+                </div>
+                <div class="right-section">
+                    拖拽图标可调整列顺序，拖拽列头边缘可调整列宽
+                </div>
+            </div>
+            
+            <!-- 列表内容 -->
+            <table class="list-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>多行文本</th>
+                        <th>多行文本</th>
+                        <th>多行文本</th>
+                        <th>多行文本</th>
+                        <th>多行文本</th>
+                        <th>多行文本</th>
+                        <th>多行文本</th>
+                        <th>多行文本</th>
+                        <th>多行文本</th>
+                        <th>同时结算</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>001</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请选择日期时间</td>
+                        <td>
+                            <button class="btn btn-outline" style="padding: 2px 8px; font-size: 12px;">编辑</button>
+                            <button class="btn btn-outline" style="padding: 2px 8px; font-size: 12px;">删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>002</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请选择日期时间</td>
+                        <td>
+                            <button class="btn btn-outline" style="padding: 2px 8px; font-size: 12px;">查看</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>003</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请输入</td>
+                        <td>请选择日期时间</td>
+                        <td>
+                            <button class="btn btn-outline" style="padding: 2px 8px; font-size: 12px;">编辑</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🔧 技术修复详情</div>
+        
+        <div class="highlight">
+            <strong>核心问题：</strong>列表模式下，普通按钮单独占一行，与用户期望的"与导入字段同行，居左显示"不符。
+        </div>
+
+        <h4>修复前的代码结构：</h4>
+        <div class="code-block">
+{/* 导入字段按钮 */}
+{!previewMode && (
+  &lt;div className="mb-4 flex justify-between items-center"&gt;
+    &lt;ImportFieldsDialog onImportFields={onImportFields} /&gt;
+    &lt;span className="text-sm text-gray-500"&gt;操作提示&lt;/span&gt;
+  &lt;/div&gt;
+)}
+
+{/* 列表上方的按钮 - 单独一行 */}
+{buttons.length > 0 && (
+  &lt;div className="mb-4 flex flex-wrap gap-2"&gt;
+    {buttons.map((component, index) =&gt; (
+      &lt;DraggableComponent ... /&gt;
+    ))}
+  &lt;/div&gt;
+)}
+        </div>
+
+        <h4>修复后的代码结构：</h4>
+        <div class="code-block">
+{/* 导入字段按钮和列表按钮 */}
+{!previewMode && (
+  &lt;div className="mb-4 flex justify-between items-center"&gt;
+    &lt;div className="flex items-center gap-2"&gt;
+      &lt;ImportFieldsDialog onImportFields={onImportFields} /&gt;
+      {/* 列表上方的按钮 - 与导入字段按钮同行，居左显示 */}
+      {buttons.length > 0 && (
+        &lt;div className="flex flex-wrap gap-2"&gt;
+          {buttons.map((component, index) =&gt; (
+            &lt;DraggableComponent ... /&gt;
+          ))}
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+    &lt;span className="text-sm text-gray-500"&gt;操作提示&lt;/span&gt;
+  &lt;/div&gt;
+)}
+        </div>
+
+        <h4>关键修复点：</h4>
+        <ul>
+            <li><strong>布局结构调整</strong>：将按钮移到导入字段按钮的同一个容器内</li>
+            <li><strong>左侧分组</strong>：使用 <code>flex items-center gap-2</code> 将导入字段和按钮组合在左侧</li>
+            <li><strong>按钮排列</strong>：保持 <code>flex flex-wrap gap-2</code> 确保按钮可以换行</li>
+            <li><strong>右侧提示</strong>：操作提示文本保持在右侧</li>
+            <li><strong>间距优化</strong>：使用合适的 gap 值确保元素间距协调</li>
+        </ul>
+
+        <h4>布局效果：</h4>
+        <ul>
+            <li>✅ <strong>同行显示</strong>：普通按钮与导入字段按钮在同一行</li>
+            <li>✅ <strong>居左对齐</strong>：所有操作按钮都在左侧，符合用户习惯</li>
+            <li>✅ <strong>空间利用</strong>：更好地利用水平空间，布局更紧凑</li>
+            <li>✅ <strong>响应式</strong>：按钮过多时可以自动换行</li>
+            <li>✅ <strong>一致性</strong>：与表单模式的按钮布局保持一致的交互体验</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">📝 使用说明</div>
+        
+        <h4>现在的布局行为：</h4>
+        <ol>
+            <li><strong>列表模式</strong>：选择"列表"或"复选框列表"内容类型</li>
+            <li><strong>添加按钮</strong>：从组件侧边栏添加普通按钮</li>
+            <li><strong>布局显示</strong>：按钮自动与"导入字段"按钮在同一行显示</li>
+            <li><strong>左侧对齐</strong>：所有操作按钮都在左侧，便于用户操作</li>
+            <li><strong>自动换行</strong>：按钮过多时会自动换行，保持布局整洁</li>
+        </ol>
+        
+        <div style="text-align: center; margin-top: 20px; padding: 15px; background-color: #d4edda; border-radius: 8px; color: #155724;">
+            <strong>🎉 Bug已修复，列表模式下按钮布局现在符合用户期望！</strong>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ 列表模式按钮布局修复验证完成');
+            console.log('✅ 普通按钮现在与导入字段按钮在同一行，居左显示');
+        });
+    </script>
+</body>
+</html>

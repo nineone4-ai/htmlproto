@@ -189,6 +189,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <SelectContent>
                 <SelectItem value="form">表单</SelectItem>
                 <SelectItem value="list">列表</SelectItem>
+                <SelectItem value="checklist">复选框列表</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -528,6 +529,42 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 onCheckedChange={(checked) => handleComponentChange("defaultChecked", checked)}
               />
             </div>
+          )}
+
+          {/* Layout Properties for form fields */}
+          {!(selectedComponent.type === "button" ||
+            selectedComponent.type === "approval-view-process" ||
+            selectedComponent.type === "approval-revoke" ||
+            selectedComponent.type === "approval-return" ||
+            selectedComponent.type === "approval-custom" ||
+            selectedComponent.type === "actionbar") && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="columnSpan">栅栏宽度</Label>
+                <Select
+                  value={selectedComponent.props.columnSpan?.toString() || "1"}
+                  onValueChange={(value) => handleComponentChange("columnSpan", parseInt(value))}
+                >
+                  <SelectTrigger id="columnSpan">
+                    <SelectValue placeholder="选择栅栏宽度" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1栅栏 (1/3宽度)</SelectItem>
+                    <SelectItem value="2">2栅栏 (2/3宽度)</SelectItem>
+                    <SelectItem value="3">3栅栏 (全宽度)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label htmlFor="fullWidth">独立一行</Label>
+                <Switch
+                  id="fullWidth"
+                  checked={selectedComponent.props.fullWidth || false}
+                  onCheckedChange={(checked) => handleComponentChange("fullWidth", checked)}
+                />
+              </div>
+            </>
           )}
 
           {/* Common Properties for most field types */}
